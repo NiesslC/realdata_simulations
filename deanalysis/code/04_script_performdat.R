@@ -13,7 +13,7 @@ rm(nsample, tcga_parameters)
 
 # Set parameters from Baik -------------------------------------------------------------------------
 # (adopted from https://github.com/unistbig/compareDEtools/blob/master/Example%20for%20paper%20figures.R)
-# Fig2 in Baik ----
+## Fig2 in Baik ----
 param.fig2 = list()
 param.fig2$nvar = 10000
 param.fig2$rep.end = 50 
@@ -29,6 +29,9 @@ param.fig2$fixedfold = FALSE
 dataset.dir='./deanalysis/data/'  #
 analysis.dir='./deanalysis/results/rdata/' 
 figure.dir='./deanalysis/results/plots/'
+
+## Fig3 in Baik ----
+# [to do]
 
 # Generate performance measures datasets -----------------------------------------------------------
 ## Fig. 2 in Baik (settings with > 0 DE genes) ----
@@ -71,5 +74,5 @@ table(is.na(performdat$AUC))
 
 ## Fig. 3 in Baik (settings with = 0 DE genes) ----
 
-# (to do)
+# [to do]
 
