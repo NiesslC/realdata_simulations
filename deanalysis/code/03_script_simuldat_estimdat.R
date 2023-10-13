@@ -1,4 +1,4 @@
-# Script
+# Script to generate simulated datasets and estimates datasets for deanalysis simulation 
 library(compareDEtools)
 library(compcodeR)
 library(dplyr)
@@ -15,6 +15,7 @@ data.types.names = paste0("TCGA.",gsub("\\_.*","",names(tcga_parameters)))
 rm(nsample, tcga_parameters)
 
 # Set parameters from Baik
+# (adopted from https://github.com/unistbig/compareDEtools/blob/master/Example%20for%20paper%20figures.R)
 # Fig2 in Baik ----
 param.fig2 = list()
 param.fig2$nvar = 10000
@@ -43,13 +44,14 @@ param.fig3$fraction.upregulated = 0.5
 param.fig3$disp.Types = 'same'
 param.fig3$modes = c('D','R','OS')
 #param.fig3$fixedfold = FALSE # Default; not explicitly specified in Baik et al. Code
-param.fig3$fpc = TRUE # in runSimulationAnalysis Docu: "[...]  Only used for real data analysis." -> This is not real data analysis but simualtion with DE 0
+param.fig3$fpc = TRUE # in runSimulationAnalysis Docu: "[...]  Only used for real data analysis." -> However, this is not real data analysis but simulation with DE 0
 
 
 dataset.dir='./deanalysis/data/'  #
 analysis.dir='./deanalysis/results/rdata/' 
 figure.dir='./deanalysis/results/plots/'
-# 1 Generate data ----------------------------------------------------------------------------------
+
+# Generate simulated datasets ----------------------------------------------------------------------
 
 # Generate data according to Figure 2 in Baik et al. for all TCGA data sets
 set.seed(19549)
@@ -81,10 +83,10 @@ for(i in 1:length(data.types.names)){
 }
 rm(i)
 
-# 2 Run methods -----------------------------------------------------------------------------------
+# Generate estimates datasets ------------------------------------------------------------
 Sys.setenv(OMP_NUM_THREADS="1")
 
-# Methods not changing state of the random number generator ----------------------------------------
+## Methods not changing state of the random number generator ----------------------------------------
 plan(multisession, workers = length(data.types.names)) # 14
 future.apply::future_lapply(1:length(data.types.names), function(i) {
   runSimulationAnalysis(working.dir=paste0(getwd(),"/deanalysis/data/simulation_degenes/") , # have to use whole path otherwise error
@@ -118,8 +120,8 @@ future.apply::future_lapply(1:length(data.types.names), function(i) {
 })
 
 
-# Methods changing state of the random number generator --------------------------------------------
-## edgeR.ql ----------------------------------------------------------------------------------------
+## Methods changing state of the random number generator --------------------------------------------
+### edgeR.ql ----------------------------------------------------------------------------------------
 plan(multisession, workers = length(data.types.names)) # 14
 future.apply::future_lapply(1:length(data.types.names), function(i) {
   runSimulationAnalysis(working.dir=paste0(getwd(),"/deanalysis/data/simulation_degenes/") , # have to use whole path otherwise error
@@ -151,7 +153,7 @@ future.apply::future_lapply(1:length(data.types.names), function(i) {
                         AnalysisMethods = param.fig3$AnalysisMethods_seed_yes[1], # "edgeR.ql"
                         para=list())
 }, future.seed = 19580) 
-## edgeR.rb ----------------------------------------------------------------------------------------
+### edgeR.rb ----------------------------------------------------------------------------------------
 plan(multisession, workers = length(data.types.names)) # 14
 future.apply::future_lapply(1:length(data.types.names), function(i) {
   runSimulationAnalysis(working.dir=paste0(getwd(),"/deanalysis/data/simulation_degenes/") , # have to use whole path otherwise error
@@ -186,7 +188,7 @@ future.apply::future_lapply(1:length(data.types.names), function(i) {
 }, future.seed = 19581) 
 
 
-## ROTS --------------------------------------------------------------------------------------------
+### ROTS --------------------------------------------------------------------------------------------
 plan(multisession, workers = length(data.types.names)) # 14
 future.apply::future_lapply(1:length(data.types.names), function(i) {
   runSimulationAnalysis(working.dir=paste0(getwd(),"/deanalysis/data/simulation_degenes/") , # have to use whole path otherwise error
@@ -219,7 +221,7 @@ future.apply::future_lapply(1:length(data.types.names), function(i) {
                         para=list())
 }, future.seed = 19582) 
 
-## BaySeq ------------------------------------------------------------------------------------------
+### BaySeq ------------------------------------------------------------------------------------------
 plan(multisession, workers = length(data.types.names)) # 14
 future.apply::future_lapply(1:length(data.types.names), function(i) {
   runSimulationAnalysis(working.dir=paste0(getwd(),"/deanalysis/data/simulation_degenes/") , # have to use whole path otherwise error
@@ -255,7 +257,7 @@ future.apply::future_lapply(1:length(data.types.names), function(i) {
 
 
 
-## PoissonSeq ---------------------------------------------------------------------------------------
+### PoissonSeq ---------------------------------------------------------------------------------------
 plan(multisession, workers = length(data.types.names)) # 14
 future.apply::future_lapply(1:length(data.types.names), function(i) {
   runSimulationAnalysis(working.dir=paste0(getwd(),"/deanalysis/data/simulation_degenes/") , # have to use whole path otherwise error
@@ -288,24 +290,9 @@ future.apply::future_lapply(1:length(data.types.names), function(i) {
                         para=list())
 }, future.seed = 19584)
 
-## SAMSeq ------------------------------------------------------------------------------------------
+### SAMSeq ------------------------------------------------------------------------------------------
 
-plan(multisession, workers = length(data.types.names)) # 14
-future.apply::future_lapply(1:length(data.types.names), function(i) {
-  runSimulationAnalysis(working.dir=paste0(getwd(),"/deanalysis/data/simulation_nodegenes/") , # have to use whole path otherwise error
-                        output.dir=paste0(analysis.dir, "rdata_nodegenes/"),
-                        real=FALSE,
-                        data.types=data.types.names[i],
-                        rep.end=param.fig3$rep.end,
-                        nsample=param.fig3$nsample,
-                        nDE = param.fig3$nDE,
-                        fpc = param.fig3$fpc ,
-                        disp.Types=param.fig3$disp.Types,
-                        modes=param.fig3$modes,
-                        AnalysisMethods = param.fig3$AnalysisMethods_seed_yes[6], # "SAMseq"
-                        para=list())
-}, future.seed = 19585)
-###################################################################################
+# @ JUlIAN FEHLER AB HIER (folgendes ist der normale Befehl, habe ab  Zeile 313 versucht, den Fehler iwie einzugrenzen)
 # plan(multisession, workers = 1) # 14 throws error 
 # future.apply::future_lapply(1:length(data.types.names), function(i) {
 #   runSimulationAnalysis(working.dir=paste0(getwd(),"/deanalysis/data/simulation_degenes/") , # have to use whole path otherwise error
@@ -322,7 +309,7 @@ future.apply::future_lapply(1:length(data.types.names), function(i) {
 #                         para=list())
 # }, future.seed = 19559)
 
-# also throws error:
+# also throws error: (habe versucht den Fehler irgendwie einzugrenzen, ergibt immer noch Fehler )
 set.seed(19559)
 for(i in 1){######length(data.types.names)){
   runSimulationAnalysis(working.dir=paste0(getwd(),"/deanalysis/data/simulation_degenes/") , # have to use whole path otherwise error
@@ -340,48 +327,24 @@ for(i in 1){######length(data.types.names)){
                         para=list())
 }
 
+# no de genes (fig 3) also throws error
+plan(multisession, workers = length(data.types.names)) # 14
+future.apply::future_lapply(1:length(data.types.names), function(i) {
+  runSimulationAnalysis(working.dir=paste0(getwd(),"/deanalysis/data/simulation_nodegenes/") , # have to use whole path otherwise error
+                        output.dir=paste0(analysis.dir, "rdata_nodegenes/"),
+                        real=FALSE,
+                        data.types=data.types.names[i],
+                        rep.end=param.fig3$rep.end,
+                        nsample=param.fig3$nsample,
+                        nDE = param.fig3$nDE,
+                        fpc = param.fig3$fpc ,
+                        disp.Types=param.fig3$disp.Types,
+                        modes=param.fig3$modes,
+                        AnalysisMethods = param.fig3$AnalysisMethods_seed_yes[6], # "SAMseq"
+                        para=list())
+}, future.seed = 19585)
 
 
 
-# # Fig3 ----
-# param.fig3 = list()
-# param.fig3$AnalysisMethods =c('edgeR','edgeR.ql','edgeR.rb','DESeq.pc','DESeq2','voom.tmm','voom.qn','voom.sw','ROTS','BaySeq','PoissonSeq','SAMseq')
-# param.fig3$nsample = c(3,10)
-# param.fig3$nDE = 0
-# param.fig3$fraction.upregulated = 0.5
-# param.fig3$disp.Types = 'same'
-# param.fig3$modes = c('D','R','OS')
-# param.fig3$fixedfold = FALSE
-# param.fig3$fpc = TRUE #??? ". Only used for real data analysis"?
-# 
-# 
-# GenerateSyntheticSimulation(working.dir=dataset.dir, 
-#                             data.types='KIRC', 
-#                             rep.end=rep.end, 
-#                             nsample=param.fig3$nsample ,
-#                             nvar = nvar, 
-#                             param.fig3$nDE, 
-#                             fraction.upregulated = param.fig3$fraction.upregulated,
-#                             disp.Types = param.fig3$disp.Types, 
-#                             modes=param.fig3$modes) #Generate KIRC synthetic dataset without DE genes to calculate false positive counts
-# runSimulationAnalysis(working.dir=dataset.dir, 
-#                       output.dir=analysis.dir, 
-#                       real=FALSE,
-#                       data.types='KIRC',
-#                       rep.end=rep.end,
-#                       nsample=param.fig3$nsample , 
-#                       fpc = param.fig3$fpc , 
-#                       nDE = param.fig3$nDE,
-#                       disp.Types=param.fig3$disp.Types,
-#                       modes=param.fig3$modes, 
-#                       AnalysisMethods = param.fig3$AnalysisMethods, 
-#                       para=list()) #Run DE analysis for preset methods
-# 
-# fpc_performance_plot(working.dir=analysis.dir,
-#                      figure.dir=figure.dir,
-#                      simul.data='KIRC', 
-#                      rep.end=rep.end, 
-#                      nsample=param.fig3$nsample , 
-#                      disp.Type = param.fig3$disp.Types, 
-#                      modes=param.fig3$modes, 
-#                      AnalysisMethods=param.fig3$AnalysisMethods) #Draw synthetic data false positive counts performance plot
+
+
