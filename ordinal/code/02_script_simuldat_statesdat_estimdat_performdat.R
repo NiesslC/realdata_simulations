@@ -69,6 +69,7 @@ rm(param)
 performdat = bind_rows(bind_rows(estimdat_user_null, estimdat_nejm_null) %>% mutate(ground_truth = "same_probs"),
                             bind_rows(estimdat_user_effect, estimdat_nejm_effect) %>% mutate(ground_truth = "diff_probs"))
 rm(estimdat_user_null, estimdat_nejm_null,estimdat_user_effect, estimdat_nejm_effect)
+
 # Rejection % and no of repetitions without NAs there are
 performdat = performdat %>%  group_by_at(vars(settingname, ground_truth, nsample, k,
                                               unique_categories, starts_with("group1_h"), starts_with("group2_h"))) %>% 
