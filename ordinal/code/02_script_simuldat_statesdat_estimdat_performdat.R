@@ -4,6 +4,7 @@ library(rms)
 library(dplyr)
 library(ggplot2); theme_set(theme_bw())
 library(reshape2)
+library(purrr)
 
 source("./ordinal/code/_fcts.R")
 load("./ordinal/data/probabilities.RData")
@@ -24,7 +25,7 @@ param_user_null = param_user %>% filter(usefornull == TRUE) # not all settings a
 param = expand.grid(nsample = nsample, setting_row = 1:nrow(param_user_null))
 
 estimdat_user_null = bind_rows(lapply(1:nrow(param), FUN = function(j){
-  generate_simuldat_estimdat_statesdat_fct(nrep = nrep, seed = 19520, setting =  param_user_null[param$setting_row[j],],
+  generate_simuldat_estimdat_statesdat_fct(nrep = nrep, seed = 1698389247, setting =  param_user_null[param$setting_row[j],],
                      nsample = param$nsample[j], ground_truth = "same_probs")
 }))
 
@@ -34,7 +35,7 @@ rm(param_user_null, param)
 ## nejm-sample, null-case (same probabilities) ----
 param = expand.grid(nsample = nsample, setting_row = 1:nrow(param_nejm))
 estimdat_nejm_null = bind_rows(lapply(1:nrow(param), FUN = function(j){
-  generate_simuldat_estimdat_statesdat_fct(nrep = nrep, seed = 19587, setting =  param_nejm[param$setting_row[j],],
+  generate_simuldat_estimdat_statesdat_fct(nrep = nrep, seed = 1698389214, setting =  param_nejm[param$setting_row[j],],
                      nsample = param$nsample[j], ground_truth = "same_probs")
 }))
 
@@ -56,7 +57,7 @@ rm(param_user_effect, param)
 ## nejm-sample, null-case (different probabilities) ----
 param = expand.grid(nsample = nsample, setting_row = 1:nrow(param_nejm))
 estimdat_nejm_effect = bind_rows(lapply(1:nrow(param), FUN = function(j){
-  generate_simuldat_estimdat_statesdat_fct(nrep = nrep, seed =1697042601, setting =  param_nejm[param$setting_row[j],],
+  generate_simuldat_estimdat_statesdat_fct(nrep = nrep, seed = 1697042601, setting =  param_nejm[param$setting_row[j],],
                                            nsample = param$nsample[j], ground_truth = "diff_probs")
 }))
 
@@ -66,15 +67,39 @@ rm(param)
 # Generate performance measures dataset ------------------------------------------------------------
 
 # Combine all results
-performdat = bind_rows(bind_rows(estimdat_user_null, estimdat_nejm_null) %>% mutate(ground_truth = "same_probs"),
-                            bind_rows(estimdat_user_effect, estimdat_nejm_effect) %>% mutate(ground_truth = "diff_probs"))
-rm(estimdat_user_null, estimdat_nejm_null,estimdat_user_effect, estimdat_nejm_effect)
+estimdat_user_null = estimdat_user_null %>% 
+  mutate(ground_truth = "same_probs",
+         source = "user")
+estimdat_user_effect = estimdat_user_effect %>% 
+  mutate(ground_truth = "diff_probs",
+         source = "user")
+estimdat_nejm_null = estimdat_nejm_null %>% 
+  mutate(ground_truth = "same_probs",
+         source = "nejm")
+estimdat_nejm_effect = estimdat_nejm_effect %>% 
+  mutate(ground_truth = "diff_probs",
+         source = "nejm")
+performdat = bind_rows(estimdat_user_null, estimdat_nejm_null,estimdat_user_effect, estimdat_nejm_effect) 
 
-# Rejection % and no of repetitions without NAs there are
-performdat = performdat %>%  group_by_at(vars(settingname, ground_truth, nsample, k,
-                                              unique_categories, starts_with("group1_h"), starts_with("group2_h"))) %>% 
+
+# Summarise warnings for each DGM
+warnings_info = performdat %>%  group_by(settingname, ground_truth, source, nsample, warnings) %>% 
+  count() %>%
+  mutate(warnings_count = paste0(n, " x ", warnings)) %>% 
+  ungroup() %>% 
+  group_by(settingname, ground_truth, source, nsample) %>%
+  summarise(all_warnings = paste(unique(warnings_count), collapse = " AND ")) %>% 
+  ungroup()
+
+# Rejection % and number of repetitions without NAs there are
+performdat = performdat %>%  group_by_at(vars(settingname, ground_truth, source, nsample, k,
+                                              starts_with("group1_h"), starts_with("group2_h"))) %>%
   summarise_at(vars(starts_with("p_")), list(reject = ~ sum(.<= 0.05, na.rm = TRUE)/sum(!is.na(.)),
                                              n_rep_narm = ~ sum(!is.na(.)))) %>% ungroup()
+
+# Add warnings_info
+performdat = full_join(performdat, warnings_info, by = c("settingname", "ground_truth", "source", "nsample"))
+rm(warnings_info)
 
 # Check that all settings are included
 stopifnot(length(unique(performdat%>% filter(ground_truth =="same_probs") %>% .$settingname )) ==
@@ -88,6 +113,15 @@ stopifnot(length(unique(performdat%>% filter(ground_truth =="diff_probs") %>% .$
 # Make sure that all methods are based on the same nrep, then only remove all but one nrep variables
 stopifnot(all(apply(performdat %>% select(ends_with("n_rep_narm")), 1, function(x) length(unique(x)) == 1))) 
 performdat = performdat %>% select(-(ends_with("n_rep_narm")&!contains("p_lrm") )) %>% rename(n_rep_narm = p_lrm_n_rep_narm)
+
+# Make sure that each DGM corresponds to exactly one row 
+stopifnot(nrow(performdat)==
+            (nrow(estimdat_nejm_effect)+ 
+               nrow(estimdat_nejm_null)+ 
+               nrow(estimdat_user_null)+ 
+               nrow(estimdat_user_effect))/nrep)
+rm(estimdat_user_null, estimdat_nejm_null, estimdat_user_effect, estimdat_nejm_effect)
+
 
 # Reshape dataset
 performdat = melt(performdat, measure.vars = c("p_wilcox_reject", "p_fisher_reject", "p_chisq_reject", "p_lrm_reject"), 
