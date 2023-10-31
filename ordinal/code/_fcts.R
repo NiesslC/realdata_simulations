@@ -163,6 +163,55 @@ generate_simuldat_estimdat_statesdat_fct = function(nrep, seed, setting, nsample
 }
 
   
-  
+# FUNCTION rel_effect_fct
+# = function that calculates the relative effect (i.e. the probability that observations in one group 
+#   tend to be larger) for two probability vectors, based on Funatogawaa and Funatogawa 2023/ Munzel and Hauschke 2003
+# INPUT
+# - prob1: probability vector 1
+# - prob2: probability vector 2
+# OUTPUT: 
+# - theta: relative effect
+rel_effect_fct = function(prob1, prob2){
+  k = length(prob1)
+  stopifnot(all.equal(length(prob1), length(prob2)))
+  psi1 = cumsum(prob1)
+  psi2 = cumsum(prob2)
+  theta = numeric(length =k)
+  for(i in 1:k){
+    curr_psi_2_iminus1 = ifelse(i == 1, 0, psi2[i-1])
+    theta[i] = prob1[i]*((psi2[i] + curr_psi_2_iminus1)/2)
+  }
+  theta = sum(theta)
+  return(theta)
+}
+# FUNCTION asymp_var_fct
+# = function that calculates the asymptotic variance for two probability vectors, based on Funatogawaa
+#   and Funatogawa 2023/ Munzel and Hauschke 2003
+# INPUT
+# - prob1: probability vector 1
+# - prob2: probability vector 2
+# OUTPUT: 
+# - list(sigma1, sigma2): list with asymptotic variance of both groups
+asymp_var_fct = function(prob1, prob2){
+  k = length(prob1)
+  stopifnot(all.equal(length(prob1), length(prob2)))
+  psi1 = cumsum(prob1)
+  psi2 = cumsum(prob2)
+  theta = rel_effect_fct(prob1,prob2)
+  sigma1 = numeric(length = k)
+  sigma2 = numeric(length = k)
+  for(i in 1:k){
+    curr_psi_2_iminus1 = ifelse(i == 1, 0, psi2[i-1])
+    curr_psi_1_iminus1 = ifelse(i == 1, 0, psi1[i-1])
+    
+    sigma1[i] = prob1[i] *((psi2[i] + curr_psi_2_iminus1)/2)^2 
+    sigma2[i] = prob2[i] *((psi1[i] + curr_psi_1_iminus1)/2)^2 
+  }
+  sigma1 = sum(sigma1)
+  sigma2 = sum(sigma2)
+  sigma1 = sigma1 - theta^2
+  sigma2 = sigma2 - (1-theta)^2
+  return(list("sigma1" = sigma1, "sigma2" = sigma2))
+}
 
 
