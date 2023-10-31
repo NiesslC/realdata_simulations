@@ -4,4 +4,6 @@
 .Ruserdata
 deanalysis/results/rdata
 deanalysis/data
+ordinal/results/rdata/*
+!ordinal/results/rdata/performdat.RData
 ordinal/data/simulation
