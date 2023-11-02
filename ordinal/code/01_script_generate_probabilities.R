@@ -4,9 +4,11 @@ library(stringi)
 library(readxl)
 library(tidyr)
 library(purrr)
+library(janitor)
 
+source("./ordinal/code/_fcts.R")
 
-# user defined parameters --------------------------------------------------------------------------
+# User defined parameters --------------------------------------------------------------------------
 # Bihl master's thesis settings (but with modifcation using k=7 instead of k=8)
 
 # group 1 = treatment group
@@ -85,83 +87,9 @@ FF2023 = FF2023 %>% mutate(usefornull = c(TRUE, TRUE, FALSE, FALSE),
 param_user = bind_rows(param_user,FF2023)
 rm(FF2023)
 
-
-# # ALB's settings
-# # same probabilities in both groups ----
-# simu_null <-list(setting1=rep(1/3,3),
-#                setting2=rep(1/5,5), 
-#                setting3=rep(1/9,9),
-#                setting4=c(1/6,2/6,3/6),
-#                setting5=c(1/10,1/10,2/10,2/10,4/10),
-#                setting6=c(1/18,1/18,1/18,2/18,2/18,2/18,3/18,3/18,3/18),
-#                setting7=c(1/6,4/6,1/6),
-#                setting8=c(1/10,1/10,6/10,1/10,1/10),
-#                setting9=c(1/18,1/18,1/18,1/18,10/18,1/18,1/18,1/18,1/18)
-# )
-# # different probabilities in groups ----
-# simu_power1_3 = list(
-#   setting1=list(prob0=c(1/3,1/3,1/3),prob1=c(1/6,2/6,3/6)),
-#   setting2=list(prob0=c(1/6,2/6,3/6),prob1=c(1/6,3/6,2/6)),
-#   setting3=list(prob0=c(1/3,1/3,1/3),prob1=c(2/3,0,1/3)),
-#   setting4=list(prob0=c(2/10,3/10,5/10),prob1=c(5/10,3/10,2/10)),
-#   setting5=list(prob0=c(2/5,1/5,2/5),prob1=c(1/5,3/5,1/5)),
-#   setting6=list(prob0=c(1/5,2/5,2/5),prob1=c(0,1/2,1/2)),
-#   setting7=list(prob0=c(1/3,1/3,1/3),prob1=c(1/6,1/6,4/6))
-# )
-# simu_power1_5 = list(
-#   setting1=list(prob0=c(0,1/10,3/10,4/10,2/10),prob1=c(1/10,3/10,4/10,2/10,0)),
-#   setting2=list(prob0=c(0,rep(1/4,4)),prob1=c(rep(1/4,4),0)),
-#   setting3=list(prob0=c(0,rep(1/5,3),2/5),prob1=rep(1/5,5)),
-#   setting4=list(prob0=rep(1/5,5),prob1=c(rep(1/4,3),rep(1/8,2))),
-#   setting5=list(prob0=c(1/4,1/4,1/4,1/8,1/8),prob1=rev(c(1/4,1/4,1/4,1/8,1/8))),
-#   setting6=list(prob0=rep(1/5,5),prob1=1/5+seq(-1/10,1/10,by=1/20))
-# )
-# simu_power1_9 = list(
-#   setting1=list(prob0=c(0,1/16,1/16,1/8,1/8,1/4,1/4,1/16,1/16),prob1=c(1/16,1/16,1/8,1/8,1/4,1/4,1/16,1/16,0)),
-#   setting2=list(prob0=c(0,rep(1/9,7),2/9),prob1=rep(1/9,9)),
-#   setting3=list(prob0=c(rep(1/18,6),rep(4/18,3)),prob1=c(rep(1/12,6),rep(3/18,3))),
-#   setting4=list(prob0=c(1/18,1/18,1/18,2/18,2/18,4/18,3/18,2/18,1/18),prob1=rev(c(1/18,1/18,1/18,2/18,2/18,4/18,3/18,2/18,1/18))),
-#   setting5=list(prob0=rep(1/9,9),prob1=1/9-seq(-1/18,1/18,by=2/18/8))
-# )
-# 
-# # data frame with all parameters ----
-# simu_null = as.data.frame(stri_list2matrix(simu_null, byrow=TRUE))
-# simu_null = simu_null %>% mutate_if(is.character, as.numeric)
-# simu_null = cbind(simu_null,simu_null) # assuming that groups have the same probabilities
-# colnames(simu_null) = c(paste0("group1_h",1:9) , paste0("group2_h",1:9))
-# simu_null = simu_null %>% mutate(settingname = "userequal") # equal probabilities 
-# 
-# simu_power = cbind(bind_rows(as.data.frame(t(sapply(simu_power1_3, `[[`, "prob0"))),
-#           as.data.frame(t(sapply(simu_power1_5, `[[`, "prob0"))),
-#           as.data.frame(t(sapply(simu_power1_9, `[[`, "prob0")))),
-# bind_rows(as.data.frame(t(sapply(simu_power1_3, `[[`, "prob1"))),
-#           as.data.frame(t(sapply(simu_power1_5, `[[`, "prob1"))),
-#           as.data.frame(t(sapply(simu_power1_9, `[[`, "prob1")))))
-# colnames(simu_power) = c(paste0("group1_h",1:9) , paste0("group2_h",1:9))
-# simu_power = simu_power %>% mutate(settingname = "userdiff") # different probabilities
-# 
-# 
-# param_user = bind_rows(simu_null, simu_power)
-# rownames(param_user) = 1:nrow(param_user)
-# # add k = number of ordinal outcomes
-# param_user = param_user %>% mutate(k = (rowSums(!is.na(param_user))-1)/2,
-#                                    settingname = paste0(settingname, "_k",k))
-# # add setting specific identifier
-# param_user = param_user %>% group_by(settingname) %>%
-#   mutate(id = row_number()) %>% ungroup() %>%
-#   mutate(settingname = paste0(settingname, "_id",id)) %>%
-#   select(-id)
-# rm(simu_null, simu_power, simu_power1_3, simu_power1_5, simu_power1_9)
-# # add input_mode(= probability)
-# param_user = param_user %>% mutate(input_mode = "probability")
-# NEJM data ---------------------------------------------------------------------------------------
+# NEJM parameters ----------------------------------------------------------------------------------
 param_nejm = read_excel("./ordinal/data/tablesample_final.xlsx", na = "NA")
 param_nejm = param_nejm %>% filter(grepl("yes|Yes", Include))
-# alt:
-#param_nejm = read_excel("./ordinal/data/aktuell_JC_tablesample.xlsx", na = "NA")
-#param_nejm = param_nejm %>% filter(!is.na(k) & !grepl("No|no", Include))
-#param_nejm = param_nejm %>% group_by(Key) %>% slice(1)
-########
 
 # rename variables
 param_nejm = param_nejm %>% dplyr::rename(settingname = Key, input_mode = `number format`)
@@ -184,7 +112,121 @@ stopifnot(all(param_nejm %>% mutate(sum1 = rowSums(across(starts_with("group1_h"
 stopifnot(all(param_nejm %>% mutate(sum2 = rowSums(across(starts_with("group2_h")), na.rm = TRUE )) %>% .$sum2 %>% map_lgl(~all.equal(.,1))))
 param_nejm = param_nejm %>% select(-sum1, -sum2)
 
+# Calculate some measures to characterize probabilities --------------------------------------------
+param_nejm = param_nejm %>% mutate(settingname = fct_reorder(settingname, k))
+
+## Long format ----
+param_nejm_long = melt(param_nejm, measure.vars = c(paste0("group1_h",1:8), paste0("group2_h", 1:8)),
+                       value.name  = "prob")
+param_nejm_long = param_nejm_long %>% mutate(group = str_split(param_nejm_long$variable,"_h", simplify = TRUE)[,1],
+                                             h =  str_split(param_nejm_long$variable,"_h", simplify = TRUE)[,2]) %>%
+  drop_na(prob)
+param_user_long = melt(param_user, measure.vars = c(paste0("group1_h",1:7), paste0("group2_h", 1:7)),
+                       value.name  = "prob")
+param_user_long = param_user_long %>% mutate(group = str_split(param_user_long$variable,"_h", simplify = TRUE)[,1],
+                                             h =  str_split(param_user_long$variable,"_h", simplify = TRUE)[,2]) %>%
+  drop_na(prob)
+
+## Odds ratios ----
+# USER 
+param_user_long_or = param_user_long %>% 
+  group_by(settingname, group) %>% 
+  arrange(h) %>%
+  mutate(prob_lower_equal = cumsum(prob),
+         prob_higher = 1-prob_lower_equal,
+         cum_odds = prob_lower_equal/prob_higher)%>%
+  arrange(settingname, group, h) %>% 
+  ungroup()
+# filter odds of last category (with all.equal and not ==) and check that the correct number of rows is excluded
+stopifnot(all.equal(sum(map_lgl(param_user_long_or$prob_lower_equal, ~ isTRUE(all.equal(.,1)))),
+                    2*length(unique(param_user$settingname))))
+param_user_long_or = param_user_long_or[!map_lgl(param_user_long_or$prob_lower_equal, ~ isTRUE(all.equal(.,1))),]
+param_user_long_or = param_user_long_or %>% group_by(settingname, h) %>% 
+  mutate(or = cum_odds[group=="group1"]/cum_odds[group=="group2"]) %>% arrange(settingname, h) %>%
+  filter(group == "group1")
+
+# add information to parameter dataset 
+param_user_long_or = param_user_long_or %>% 
+  select(settingname, k, h, or) %>% 
+  spread(key = h, value = or, sep = "_oddsratio_")
+param_user=full_join(param_user,param_user_long_or, by = c("settingname","k"))
+rm(param_user_long_or)
+
+# NEJM 
+param_nejm_long_or = param_nejm_long %>% group_by(settingname, group) %>% 
+  arrange(h) %>% 
+  mutate(prob_lower_equal = cumsum(prob),
+         prob_higher = 1-prob_lower_equal,
+         cum_odds = prob_lower_equal/prob_higher)%>%
+  arrange(settingname, group, h) %>% 
+  ungroup()
+# filter odds of last category (with all.equal and not ==) and check that the correct number of rows is excluded
+stopifnot(all.equal(sum(map_lgl(param_nejm_long_or$prob_lower_equal, ~ isTRUE(all.equal(.,1)))),
+                    2*length(unique(param_nejm$settingname))))
+param_nejm_long_or = param_nejm_long_or[!map_lgl(param_nejm_long_or$prob_lower_equal, ~ isTRUE(all.equal(.,1))),]
+param_nejm_long_or = param_nejm_long_or %>% group_by(settingname, h) %>% 
+  mutate(or = cum_odds[group=="group1"]/cum_odds[group=="group2"]) %>% arrange(settingname, h) %>%
+  filter(group == "group1")
+
+# add information to parameter dataset 
+param_nejm_long_or = param_nejm_long_or %>% 
+  select(settingname, k, h, or) %>% 
+  spread(key = h, value = or, sep = "_oddsratio_")
+param_nejm=full_join(param_nejm,param_nejm_long_or, by = c("settingname","k"))
+rm(param_nejm_long_or)
+
+## KL, Relative effect and asymptotic variance ----
+library(philentropy)
+param_user_long_releff_var = param_user_long %>% 
+  group_by(settingname, k) %>% 
+  arrange(settingname, h) %>% 
+  summarise(kl1 = kullback_leibler_distance(P = prob[group == "group1"], 
+                                            Q = prob[group == "group2"], 
+                                            unit = "log", testNA = TRUE,0.00001),
+            kl2 = kullback_leibler_distance(P = prob[group == "group2"], 
+                                            Q = prob[group == "group1"], 
+                                            unit = "log", testNA = TRUE,0.00001),
+            rel_effect = rel_effect_fct(prob1 = prob[group == "group1"],
+                                        prob2 = prob[group == "group2"]),
+            asymp_var1 = asymp_var_fct(prob1 = prob[group == "group1"],
+                                       prob2 = prob[group == "group2"])$sigma1,
+            asymp_var2 = asymp_var_fct(prob1 = prob[group == "group1"],
+                                       prob2 = prob[group == "group2"])$sigma2) 
+
+param_nejm_long_releff_var = param_nejm_long %>% 
+  group_by(settingname,k) %>% 
+  arrange(settingname, h) %>% 
+  summarise(kl1 = kullback_leibler_distance(P = prob[group == "group1"], 
+                                            Q = prob[group == "group2"], 
+                                            unit = "log", testNA = TRUE,0.00001),
+            kl2 = kullback_leibler_distance(P = prob[group == "group2"], 
+                                            Q = prob[group == "group1"], 
+                                            unit = "log", testNA = TRUE,0.00001),
+            rel_effect = rel_effect_fct(prob1 = prob[group == "group1"],
+                                        prob2 = prob[group == "group2"]),
+            asymp_var1 = asymp_var_fct(prob1 = prob[group == "group1"],
+                                       prob2 = prob[group == "group2"])$sigma1,
+            asymp_var2 = asymp_var_fct(prob1 = prob[group == "group1"],
+                                       prob2 = prob[group == "group2"])$sigma2) 
+
+# check equality with FF2023 paper
+param_user_long_releff_var %>% filter(grepl("FF2023",settingname))
+# -> equal 
+
+# add information to parameter dataset
+param_user = full_join(param_user,param_user_long_releff_var, by = c("settingname","k"))
+param_nejm = full_join(param_nejm,param_nejm_long_releff_var, by = c("settingname","k"))
+
+param_user = param_user %>% relocate(settingname, k)
+param_nejm = param_nejm %>% relocate(settingname, k)
+rm(param_user_long, param_user_long_releff_var, param_nejm_long, param_nejm_long_releff_var)
+
+## indicate outcome type for nejm
+param_nejm = param_nejm %>% mutate(outcome_type_cat = ifelse(grepl("primary|Primary", `Outcome Type` ),
+                                                             "primary", "other"))
 # SAVE ---------------------------------------------------------------------------------------------
+param_user = param_user %>% clean_names()
+param_nejm = param_nejm %>% clean_names()
 save(param_user, param_nejm, file = "./ordinal/data/probabilities.RData")
 
 
