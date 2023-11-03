@@ -10,7 +10,17 @@ library(purrr)
 load("./ordinal/data/probabilities.RData")
 
 # Plots and tables =================================================================================
-
+## Long format ----
+param_nejm_long = melt(param_nejm, measure.vars = c(paste0("group1_h",1:8), paste0("group2_h", 1:8)),
+                       value.name  = "prob")
+param_nejm_long = param_nejm_long %>% mutate(group = str_split(param_nejm_long$variable,"_h", simplify = TRUE)[,1],
+                                             h =  str_split(param_nejm_long$variable,"_h", simplify = TRUE)[,2]) %>%
+  drop_na(prob)
+param_user_long = melt(param_user, measure.vars = c(paste0("group1_h",1:7), paste0("group2_h", 1:7)),
+                       value.name  = "prob")
+param_user_long = param_user_long %>% mutate(group = str_split(param_user_long$variable,"_h", simplify = TRUE)[,1],
+                                             h =  str_split(param_user_long$variable,"_h", simplify = TRUE)[,2]) %>%
+  drop_na(prob)
 
 # Number of categories, samples --------------------------------------------------------------------
 table(param_nejm$k)
@@ -81,59 +91,60 @@ ggplot(param_nejm_long_cum, aes(x = h, y = cumprob, col = group, group = group))
   geom_line()+
   facet_wrap(~settingname, scales = "free_x")
 ggsave("./ordinal/results/plots/param_nejm_cumdist.pdf", width = 12, height= 9)
-# Cumulative Odds ---------------------------------------------------------------------------------------------
 
-p = arrangeGrob(ggplot(param_user_long_or, aes(x = h, y = or, col = settingname, group = settingname))+
-  geom_point()+
-   geom_line()+
-   guides(col = "none")+
-   labs(title = "user")+
-   lims(y = c(0,7)),
- ggplot(param_nejm_long_or, aes(x = h, y = or, col = settingname, group = settingname))+
-   geom_point()+
-   geom_line()+
-   guides(col = "none")+
-   labs(title = "nejm")+
-   lims(y = c(0,31)), ncol = 2)
- ggsave(p, filename = "./ordinal/results/plots/param_nejm_vs_user_or.pdf")
- 
-p = arrangeGrob(ggplot(param_user_long_or, aes(x = h, y = or, col = settingname, group = settingname))+
-                geom_point()+
-                geom_line()+
-                guides(col = "none")+
-                labs(title = "user")+
-                lims(y = c(0,11)),
-              ggplot(param_nejm_long_or, aes(x = h, y = or, col = settingname, group = settingname))+
-                geom_point()+
-                geom_line()+
-                guides(col = "none")+
-                labs(title = "nejm")+
-                lims(y = c(0,11)), ncol = 2)
- ggsave(p, filename = "./ordinal/results/plots/param_nejm_vs_user_or2.pdf")
+# Cumulative Odds 
 
-# Relative effect and asymptotic variance ----------------------------------------------------------
+# p = arrangeGrob(ggplot(param_user_long_or, aes(x = h, y = or, col = settingname, group = settingname))+
+#   geom_point()+
+#    geom_line()+
+#    guides(col = "none")+
+#    labs(title = "user")+
+#    lims(y = c(0,7)),
+#  ggplot(param_nejm_long_or, aes(x = h, y = or, col = settingname, group = settingname))+
+#    geom_point()+
+#    geom_line()+
+#    guides(col = "none")+
+#    labs(title = "nejm")+
+#    lims(y = c(0,31)), ncol = 2)
+#  ggsave(p, filename = "./ordinal/results/plots/param_nejm_vs_user_or.pdf")
+#  
+# p = arrangeGrob(ggplot(param_user_long_or, aes(x = h, y = or, col = settingname, group = settingname))+
+#                 geom_point()+
+#                 geom_line()+
+#                 guides(col = "none")+
+#                 labs(title = "user")+
+#                 lims(y = c(0,11)),
+#               ggplot(param_nejm_long_or, aes(x = h, y = or, col = settingname, group = settingname))+
+#                 geom_point()+
+#                 geom_line()+
+#                 guides(col = "none")+
+#                 labs(title = "nejm")+
+#                 lims(y = c(0,11)), ncol = 2)
+#  ggsave(p, filename = "./ordinal/results/plots/param_nejm_vs_user_or2.pdf")
 
-
-
-# plots
-
-ggplot(bind_rows(param_nejm_long_releff_var, param_user_long_releff_var),
-       aes(x = source, y = rel_effect))+
-  geom_boxplot()+
-  geom_hline(yintercept = 0.5, col = "red")+
-  facet_wrap(~k, labeller = label_both)
- ggsave("./ordinal/results/plots/param_nejm_vs_user_rel_effect.pdf")
-
-grid.arrange(ggplot(bind_rows(param_nejm_long_releff_var, param_user_long_releff_var),
-       aes(x = source, y = asymp_var1))+
-  geom_boxplot()+
-  facet_wrap(~k, labeller = label_both),
-ggplot(bind_rows(param_nejm_long_releff_var, param_user_long_releff_var),
-       aes(x = source, y = asymp_var2))+
-  geom_boxplot()+
-  facet_wrap(~k, labeller = label_both))
-
- ggsave("./ordinal/results/plots/param_nejm_vs_user_asymp_var.pdf")
+# # Relative effect and asymptotic variance 
+# 
+# 
+# 
+# # plots
+# 
+# ggplot(bind_rows(param_nejm_long_releff_var, param_user_long_releff_var),
+#        aes(x = source, y = rel_effect))+
+#   geom_boxplot()+
+#   geom_hline(yintercept = 0.5, col = "red")+
+#   facet_wrap(~k, labeller = label_both)
+#  ggsave("./ordinal/results/plots/param_nejm_vs_user_rel_effect.pdf")
+# 
+# grid.arrange(ggplot(bind_rows(param_nejm_long_releff_var, param_user_long_releff_var),
+#        aes(x = source, y = asymp_var1))+
+#   geom_boxplot()+
+#   facet_wrap(~k, labeller = label_both),
+# ggplot(bind_rows(param_nejm_long_releff_var, param_user_long_releff_var),
+#        aes(x = source, y = asymp_var2))+
+#   geom_boxplot()+
+#   facet_wrap(~k, labeller = label_both))
+# 
+#  ggsave("./ordinal/results/plots/param_nejm_vs_user_asymp_var.pdf")
 
  
 # CEN plots 
