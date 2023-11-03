@@ -1,10 +1,12 @@
 # simulation parameters
 library(dplyr)
 library(stringi)
+library(stringr)
 library(readxl)
 library(tidyr)
 library(purrr)
 library(janitor)
+library(forcats)
 
 source("./ordinal/code/_fcts.R")
 
@@ -150,6 +152,11 @@ param_user_long_or = param_user_long_or %>%
   select(settingname, k, h, or) %>% 
   spread(key = h, value = or, sep = "_oddsratio_")
 param_user=full_join(param_user,param_user_long_or, by = c("settingname","k"))
+param_user = param_user %>% 
+  rowwise() %>% 
+  mutate(maxdiff_or = max(c_across(contains("_oddsratio_")), na.rm = TRUE)-
+           min(c_across(contains("_oddsratio_")), na.rm = TRUE),
+         mean_or = mean(c_across(contains("_oddsratio_")), na.rm = TRUE))
 rm(param_user_long_or)
 
 # NEJM 
@@ -173,6 +180,11 @@ param_nejm_long_or = param_nejm_long_or %>%
   select(settingname, k, h, or) %>% 
   spread(key = h, value = or, sep = "_oddsratio_")
 param_nejm=full_join(param_nejm,param_nejm_long_or, by = c("settingname","k"))
+param_nejm = param_nejm %>% 
+  rowwise() %>% 
+  mutate(maxdiff_or = max(c_across(contains("_oddsratio_")), na.rm = TRUE)-
+           min(c_across(contains("_oddsratio_")), na.rm = TRUE),
+         mean_or = mean(c_across(contains("_oddsratio_")), na.rm = TRUE))
 rm(param_nejm_long_or)
 
 ## KL, Relative effect and asymptotic variance ----
@@ -221,7 +233,7 @@ param_user = param_user %>% relocate(settingname, k)
 param_nejm = param_nejm %>% relocate(settingname, k)
 rm(param_user_long, param_user_long_releff_var, param_nejm_long, param_nejm_long_releff_var)
 
-## indicate outcome type for nejm
+## indicate outcome type for nejm ----
 param_nejm = param_nejm %>% mutate(outcome_type_cat = ifelse(grepl("primary|Primary", `Outcome Type` ),
                                                              "primary", "other"))
 # SAVE ---------------------------------------------------------------------------------------------
