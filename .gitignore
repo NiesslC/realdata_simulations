@@ -6,5 +6,6 @@
 deanalysis/results/rdata
 deanalysis/data
 ordinal/results/rdata/*
-!ordinal/results/rdata/performdat.RData
+!ordinal/results/rdata/performdat_degenes.RData
+!ordinal/results/rdata/performdat_nodegenes.RData
 ordinal/data/simulation
