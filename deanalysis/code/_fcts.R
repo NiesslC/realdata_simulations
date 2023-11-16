@@ -70,7 +70,7 @@ get_parameters_fct = function(dataset) {
 # - Do not calculate parameters for TCGA (incl. KIRC) in function but load them from .RData file
 generateDatasetParameter_new = function(data.types){
   
-  # TCGA data sets
+  # TCGA data sets ----
   load("./deanalysis/data/tcga_parameters.RData")
   
   # to make sure function still works in the initial version when one/more of c(KIRC, Bottomly, mBdK and mKdB)
@@ -434,27 +434,27 @@ SyntheticDataSimulation_new = function (simul.data, dataset, random_sampling = F
 }
 
 # Modifications SyntheticDataSimulation: 
-# - return data frame instead of plot
+# - return data frame instead of plot (-> remove figure.dir argument)
 # - remove adjusted pvalues with NAs and include this information in the results data frame
-performance_plot_new = function (working.dir, figure.dir, fixedfold = FALSE, simul.data, 
+performance_plot_new = function (working.dir, fixedfold = FALSE, simul.data, 
           rep.start = 1, rep.end, nsample, nvar, nDE, fraction.upregulated, 
-          disp.Types, mode, rowType, AnalysisMethods) {
+          disp.Type, mode, rowType, AnalysisMethods) {
   if (length(simul.data) != 1) {
     stop("simul.data must have one element.")
   }
   if (length(mode) != 1) {
     stop("mode must have one element.")
   }
-  if (length(disp.Types) != 1) {
-    stop("disp.Types must have one element.")
+  if (length(disp.Type) != 1) {
+    stop("disp.Type must have one element.")
   }
   if (fixedfold) {
     fraction.upregulated = 0.67
   }
-  if (disp.Types == "same") {
+  if (disp.Type == "same") {
     test.cond = mode
   }
-  else if (disp.Types == "different") {
+  else if (disp.Type == "different") {
     test.cond = paste("DiffDisp_", mode, sep = "")
   }
   type = switch(test.cond, D = "No Random outlier test / same dispersion ", 
@@ -471,7 +471,7 @@ performance_plot_new = function (working.dir, figure.dir, fixedfold = FALSE, sim
           tpr_temp = c()
           tfdr_temp = c()
           auc_temp = c()
-          nas_temp = c()
+          nas_temp = c() # csauer: add info regarding NAs
           for (i in rep.start:rep.end) {
             if (fixedfold) {
               fileName = paste(working.dir, simul.data, 
@@ -492,10 +492,10 @@ performance_plot_new = function (working.dir, figure.dir, fixedfold = FALSE, sim
             result = result@result.table
             
             if((tools %in% c("DESeq.pc","DESeq2")) & any(is.na(result$adjpvalue))){ # if DESeq.pc or DESeq2, exclude genes with NA adjpvalue
-              nas_temp = append(nas_temp, sum(is.na(result$adjpvalue)))
+              nas_temp = append(nas_temp, sum(is.na(result$adjpvalue))) # csauer: add info regarding NAs
               result = result %>% filter(!is.na(adjpvalue))
             } else{
-              nas_temp = append(nas_temp, 0)
+              nas_temp = append(nas_temp, 0) # csauer: add info regarding NAs
             }
             if (nrow(result) == 0) {
               next
@@ -570,7 +570,7 @@ performance_plot_new = function (working.dir, figure.dir, fixedfold = FALSE, sim
           tpr = append(tpr, tpr_temp)
           tfdr = append(tfdr, tfdr_temp)
           auc = append(auc, auc_temp)
-          nas = append(nas, nas_temp)
+          nas = append(nas, nas_temp) # csauer: add info regarding NAs
           
         }
       }
@@ -580,12 +580,13 @@ performance_plot_new = function (working.dir, figure.dir, fixedfold = FALSE, sim
   res = data.frame(Methods = METHOD, nSample = NSAMPLE, Repeat = REPEAT, 
                    nDE = NDE, upDE = UPPROP, TPR = tpr, trueFDR = tfdr, 
                    AUC = auc, Color = COLOR,
+                   # csauer:
                    simul.data = simul.data,
                    nvar = nvar,
                    fixedfold = fixedfold,
-                   disp.Types = disp.Types,
+                   disp.Type = disp.Type,
                    mode = mode,
-                   nas = nas)
+                   nas = nas) # csauer: add info regarding NAs
   return(res)
   # res$Color = factor(res$Color)
   # res$nDE = paste(res$nDE, sep = "")
@@ -641,4 +642,105 @@ performance_plot_new = function (working.dir, figure.dir, fixedfold = FALSE, sim
   #     dev.off()
   #   }
   # }
+}
+
+# Modifications fpc_performance_plot: 
+# - return data frame instead of plot (-> remove figure.dir argument)
+fpc_performance_plot_new = function(working.dir, simul.data, rep.start = 1, 
+          rep.end, nsample, disp.Type, modes, AnalysisMethods, nvar){
+  if (length(simul.data) != 1) {
+    stop("simul.data must have one element.")
+  }
+  if (length(disp.Type) != 1) {
+    stop("disp.Type must have one element.")
+  }
+  fpc = ts = tc = NSAMPLE = METHOD = COLOR = COND = REPEAT = NULL
+  for (mode in modes) {
+    for (s in nsample) {
+      for (tools in AnalysisMethods) {
+        tools2 = select_tool((tools))
+        fpc_temp = c()
+        for (i in rep.start:rep.end) {
+          if (disp.Type == "same") {
+            test.cond = mode
+          }
+          else if (disp.Type == "different") {
+            test.cond = paste("DiffDisp_", mode, sep = "")
+          }
+          fileName = paste(working.dir, simul.data, "_", 
+                           test.cond, "_0DE_", s, "spc_rep_", i, "_", 
+                           tools2, ".rds", sep = "")
+          result = try(readRDS(fileName), silent = T)
+          if (class(result) == "try-error") {
+            next
+          }
+          result = result@result.table
+          if (nrow(result) == 0) {
+            next
+          }
+          if (tools == "PoissonSeq") {
+            rownames(result) = as.character(result$Genename)
+          }
+          ts = append(ts, setdiff(tools, ts))
+          mColor = select_color(tools)
+          tc = append(tc, setdiff(mColor, tc))
+          if (!is.null(result$FDR)) {
+            FDR = result$FDR
+          }
+          else if (!is.null(result$adjpvalue)) {
+            FDR = result$adjpvalue
+          }
+          GeneName = rownames(result)
+          FalseGene = paste("g", 1:(nrow(result)), sep = "")
+          indexFalse = which(GeneName %in% FalseGene)
+          fpc_temp = append(fpc_temp, (length(which(FDR[indexFalse] < 
+                                                      0.1))))
+          REPEAT = append(REPEAT, i)
+          COND = append(COND, mode)
+          NSAMPLE = append(NSAMPLE, s)
+          METHOD = append(METHOD, tools)
+          COLOR = append(COLOR, mColor)
+        }
+        fpc = append(fpc, fpc_temp)
+      }
+    }
+  }
+  res = data.frame(Methods = METHOD, nSample = NSAMPLE, Repeat = REPEAT, 
+                   Condition = COND, FPC = fpc, Color = COLOR,
+                   # csauer:
+                   simul.data = simul.data,
+                   nvar = nvar,
+                   disp.Type = disp.Type,
+                   mode = mode)
+  return(res)
+  # res$Color = factor(res$Color)
+  # res2 = melt(res, measure.vars = c("FPC"))
+  # res2 <- res2[, -which(names(res2) == "Condition")]
+  # res2$variable = res$Condition
+  # default_order = c("edgeR", "edgeR.ql", "edgeR.rb", "DESeq.pc",
+  #                   "DESeq2", "voom.tmm", "voom.qn", "voom.sw", "ROTS", "BaySeq",
+  #                   "BaySeq.qn", "PoissonSeq", "SAMseq")
+  # axis_order = intersect(default_order, AnalysisMethods)
+  # sub.res = res2
+  # miss = which(is.na(sub.res$value))
+  # if (length(miss) > 0) {
+  #   sub.res = sub.res[-miss, ]
+  # }
+  # pd = position_dodge(width = 0)
+  # gbase = ggplot(sub.res, aes(y = value, x = Methods, color = Methods)) +
+  #   geom_boxplot(position = pd, outlier.shape = NA) + facet_grid(variable ~
+  #                                                                  nSample, scales = "free") + scale_x_discrete(limits = axis_order) +
+  #   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  #   scale_colour_manual(name = "Methods", labels = ts[order(ts)],
+  #                       values = tc[order(ts)])
+  # gline = gbase
+  # tt = paste(simul.data, " / False Positive Counts / ", disp.Type,
+  #            " dispersion ", sep = "")
+  # print(gline + aes(x = Methods) + labs(x = "Methods", y = "False Positive counts") +
+  #         ggtitle(tt))
+  # figurename = gsub(pattern = " / ", replacement = "_", x = tt)
+  # figurename = paste(figurename, ".pdf", sep = "")
+  # ggsave(file = paste(figure.dir, "/", figurename, sep = ""),
+  #        width = 10, height = 8)
+  # dev.off()
 }
