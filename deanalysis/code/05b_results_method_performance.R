@@ -1,7 +1,7 @@
 # Evaluate performance results of methods 
 library(dplyr)
 library(reshape2)
-library(ggplot2)
+library(ggplot2); theme_set(theme_bw())
 
 # Get TCGA parameter meta data ---------------------------------------------------------------------
 load("./deanalysis/data/tcga_parameters_metadata.RData")
@@ -18,124 +18,204 @@ performdat_degenes = performdat_degenes %>%
          Methods = factor(Methods,levels = c("edgeR","edgeR.ql","edgeR.rb","DESeq.pc",
                                              "DESeq2","voom.tmm","voom.qn",   
                                              "voom.sw","ROTS","BaySeq","PoissonSeq","SAMseq")))
-# Absolute performances ---------------------------------------------------------------------------
 
-testdat = performdat_degenes %>% filter(nSample == 3 & mode == "D" & nDE == "pDE = 5%")
-ggplot(testdat,
-       aes(x = Methods, y = AUC, col = simul.data))+
+# add info on nsample, median dispersion and median mean
+mean_disp_info = full_join(disp.total_all %>% group_by(dataset, nsample) %>% 
+  mutate(dataset = paste0("TCGA.", dataset)) %>% 
+  summarise(simul.data_disp_median = median(disp)) %>%
+  rename(simul.data = dataset, simul.data_nsample = nsample),
+  mean.total_all %>% group_by(dataset, nsample) %>% 
+    mutate(dataset = paste0("TCGA.", dataset)) %>% 
+    summarise(simul.data_mean_median = median(mean)) %>%
+    rename(simul.data = dataset, simul.data_nsample = nsample), 
+  by = c("simul.data", "simul.data_nsample"))  %>% ungroup()
+
+performdat_degenes=full_join(performdat_degenes,  mean_disp_info, 
+                             by = "simul.data")
+performdat_nodegenes=full_join(performdat_nodegenes,mean_disp_info, 
+                             by  = "simul.data")
+rm(mean_disp_info)
+
+# calculate median performance values 
+performdat_degenes_median = performdat_degenes %>% group_by(Methods,simul.data,simul.data_mean_median,simul.data_disp_median,
+                                                            nSample,mode,nDE) %>%
+  summarise(median_auc = mean(AUC, na.rm = TRUE),
+            median_tpr = mean(TPR, na.rm = TRUE),
+            median_truefdr = mean(trueFDR, na.rm = TRUE))
+
+performdat_nodegenes_median = performdat_nodegenes %>% group_by(Methods,simul.data,simul.data_mean_median,simul.data_disp_median,
+                                                                nSample,mode) %>%
+  summarise(median_fpc = median(FPC, na.rm = TRUE))
+
+
+# Check distribution of mean and dispersion in data sets -------------------------------------------
+ggplot(mean.total_all, aes(x = log(1+mean)))+
+    geom_histogram()+
+    facet_wrap(~dataset)
+
+ggplot(disp.total_all, aes(x = log(disp)))+
+    geom_histogram()+
+    facet_wrap(~dataset)
+
+ggplot(disp.total_all %>% group_by(dataset, nsample) %>%
+         summarise(median = median(disp)),
+       aes(x = nsample, y = median))+
+  geom_point()
+# mean seems to be very similar, dispersion not 
+
+# Check NAs in trueFDR -----------------------------------------------------------------------------
+# no NAs in other performance meausres
+stopifnot(sum(is.na(performdat_degenes$AUC)) == 0 & sum(is.na(performdat_degenes$TPR)) == 0 &
+  sum(is.na(performdat_nodegenes$FPC)) == 0 )
+# inspect NAs of trueFDR
+performdat_degenes %>% group_by(Methods,simul.data,nSample,mode,nDE) %>% 
+  summarise(sumna = sum(is.na(trueFDR))) %>% 
+  mutate(simul.data = gsub("TCGA.","", simul.data)) %>%
+  filter(sumna > 0 ) %>%
+  ggplot(aes(fill = Methods, y = sumna, x = simul.data))+
+  geom_bar(stat = "identity", position = "dodge")+
+  facet_grid(mode ~nSample ~ nDE) +
+  theme(legend.position = "bottom",
+        axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+# Association of absolute performances with data set characteristics -------------------------------
+
+## performance vs. median dispersion and mean (for one setting incl. simulation error) ----
+## Dispersion
+p_base = ggplot(performdat_degenes %>% filter(nSample == 3 & mode == "D" & nDE == "pDE = 5%"),
+       aes(col = simul.data, x = simul.data_disp_median))+
   geom_boxplot()+
-#  scale_color_manual(values = unique(performdat_degenes$Color))+
-  facet_grid(~Methods, scales = "free")+
+  facet_wrap(~ Methods, ncol = 3, scales = "free_y")+
+  labs(x = "", y = "")+
+  theme(legend.position = "bottom",
+        axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+# AUC 
+p_base %+% list(aes(y = AUC))
+# TPR 
+p_base %+% list(aes(y = TPR))
+# trueFDR 
+p_base %+% list(aes(y = trueFDR))
+# FPC
+ggplot(performdat_nodegenes %>% filter(nSample == 3 & mode == "D"),
+       aes(col = simul.data, x = simul.data_disp_median, y = FPC))+
+  geom_boxplot()+
+  facet_wrap(~ Methods, ncol = 3, scales = "free_y")+
   labs(x = "", y = "")+
   theme(legend.position = "bottom",
         axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 
+## Mean 
+# AUC 
+p_base %+% list(aes(x = simul.data_mean_median, y = AUC))
+# TPR
+p_base %+% list(aes(x = simul.data_mean_median, y = TPR))
+# trueFDR
+p_base %+% list(aes(x = simul.data_mean_median, y = trueFDR))
+# FPC
+ggplot(performdat_nodegenes %>% filter(nSample == 3 & mode == "D"),
+       aes(col = simul.data, x = simul.data_mean_median, y = FPC))+
+  geom_boxplot()+
+  facet_wrap(~ Methods, ncol = 3, scales = "free_y")+
+  labs(x = "", y = "")+
+  theme(legend.position = "bottom",
+        axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 
-# 
-
-##################### NAs
-
-# Summarise ----------------------------------------------------------------------------------------
-ggplot(disp.total_all %>% group_by(dataset, nsample) %>% summarise(median = median(disp)) %>% arrange(nsample) %>%
-         filter(nsample > 10),
-       aes(x = nsample, y = median))+
-  geom_point()
-# Plot ---------------------------------------------------------------------------------------------
-
-plot_mean_hist = function(data, filter_n){
-  data %>% 
-    filter(nsample >= filter_n) %>%
-    ggplot(aes(x = log(1+mean)))+
-    geom_histogram()+
-    facet_wrap(~dataset)
-}
-plot_disp_hist = function(data, filter_n){
-  data %>% 
-    filter(nsample >= filter_n) %>%
-    ggplot(aes(x = log(disp)))+
-    geom_histogram()+
-    facet_wrap(~dataset)
-}
-
-filter_n = 10
-
-ggsave(plot_mean_hist(mean.total_all, filter = filter_n), filename = "./results/mean.total.pdf")
-ggsave(plot_disp_hist(disp.total_all, filter = filter_n), filename = "./results/disp.total.pdf")
-
-
-
-
-####################################
-# (bis jetzt nur paar sachen ausprobiert)
-t2 = t %>%
-  mutate(setting = paste(nSample, nDE, upDE, mode, nvar, fixedfold, disp.Types)) %>%
-  group_by(setting, simul.data, Methods) %>%
-  # group_by(nSample, nDE, upDE, simul.data, mode, nvar, fixedfold, disp.Types, Methods) %>% 
-  summarise(median_TPR = median(TPR),median_trueFDR = median(trueFDR),median_AUC = median(AUC))  %>% 
-  ungroup() 
-t3 = t2 %>% group_by(setting, simul.data) %>%
-  mutate(rank_auc = rank(-median_AUC),
-         rank_tpr = rank(-median_TPR) ) %>% ungroup()
-settings = unique(t3$setting)
-ggplot(t3 , aes( x = Methods, fill =  factor(rank_auc)))+
-  geom_bar(position = "fill")+
-  facet_wrap(~ setting)
-
-ggplot(t3, aes( x = Methods, y =  rank_auc))+
+## performance vs. median dispersion and mean (median performance measure) ----
+## Dispersion 
+p_base = ggplot(performdat_degenes_median,
+       aes(col = Methods, group = Methods, x = simul.data_disp_median))+
+  geom_vline(xintercept = unique(performdat_degenes$simul.data_disp_median[performdat_degenes$simul.data=="TCGA.KIRC"]),
+             linetype = "dotted")+
   geom_point()+
-  geom_point(data = t3 %>% filter(simul.data == "TCGA.KIRC"), col = "mediumseagreen")+
-  facet_wrap(~ setting)+
-  theme_bw()
-ggsave("./deanalysis/results/plots/auc_ranks.pdf")
-ggplot(t3, aes( x = Methods, y =  rank_tpr))+
+  geom_line()+
+  facet_grid(~nDE ~ nSample ~ mode )
+# AUC 
+p_base %+% list(aes(y = median_auc))
+# TPR 
+p_base %+% list(aes(y = median_tpr))
+# trueFDR 
+p_base %+% list(aes(y = median_truefdr))
+# FPC
+ggplot(performdat_nodegenes_median,
+       aes( y = median_fpc,col = Methods, group = Methods, x = simul.data_disp_median))+
+  geom_vline(xintercept = unique(performdat_nodegenes$simul.data_disp_median[performdat_nodegenes$simul.data=="TCGA.KIRC"]),
+             linetype = "dotted")+
   geom_point()+
-  geom_point(data = t3 %>% filter(simul.data == "TCGA.KIRC"), col = "mediumseagreen")+
-  facet_wrap(~ setting)+
-  theme_bw()
-ggsave("./deanalysis/results/plots/auc_tpr.pdf")
-#----------------------------------
-# # dortmund 
-# disp.total_all %>% filter(nsample >=10) %>%
-#   group_by(dataset) %>%
-#   mutate(median_disp = median(disp)) %>% ungroup() %>%
-#   mutate(dataset = fct_reorder(dataset, median_disp)) %>% 
-# ggplot( 
-#        aes(y = log(disp), x = dataset, col = dataset == "KIRC"))+
-#   geom_boxplot()+
-#   scale_color_manual(values = c("#FF9D73", "black"))+
-#   guides(col = "none")+
-#   labs(y = "log(Dispersion)", x = "TCGA data set")
-# ggsave("./deanalysis/results/plots/dortmund_dispersion.pdf", width = 7, height = 5)
-# 
-# 
-# mean.total_all %>% filter(nsample >=10) %>%
-#   group_by(dataset) %>%
-#   mutate(median_mean = median(mean)) %>% ungroup() %>%
-#   mutate(dataset = fct_reorder(dataset, median_mean)) %>% 
-#   ggplot( 
-#     aes(y = log(mean), x = dataset))+
-#   geom_boxplot()+
-#   guides(col = "none") 
-# t4 = t3 %>% group_by(Methods, setting) %>% summarise(min_rank = min(rank_auc),
-#                                                 max_rank = max(rank_auc),
-#                                                 kirc_rank = rank_auc[simul.data=="TCGA.KIRC"]) %>%
-#   mutate(settinglabel = factor(setting, labels = paste0("setting ", 1:24)))
-# ggplot(t4, aes(x = Methods))+
-#   geom_errorbar(aes(ymin = min_rank, ymax = max_rank), col = "#FF9D73")+
-#   geom_point(aes(y = kirc_rank), size = 0.8)+
-#   facet_wrap(~settinglabel, nrow =4)+
-#   theme_bw()+
-#   labs(x = "Method", y = "Performance rank based on AUC")+
-#   scale_y_continuous(breaks = 1:11)+
-#   theme(axis.text.x = element_text(angle = 90, size = 8))
-# ggsave("./deanalysis/results/plots/dortmund_results.pdf", width = 8, height = 6)
-# 
-# ggplot(t4, aes(x = Methods))+
-#   #geom_errorbar(aes(ymin = min_rank, ymax = max_rank), col = "#FF9D73")+
-#   geom_point(aes(y = kirc_rank), size = 0.8)+
-#   facet_wrap(~settinglabel, nrow =4)+
-#   theme_bw()+
-#   labs(x = "Method", y = "Performance rank based on AUC")+
-#   scale_y_continuous(breaks = 1:11)+
-#   theme(axis.text.x = element_text(angle = 90, size = 8))
-# ggsave("./deanalysis/results/plots/dortmund_results_kirc.pdf", width = 8, height = 6)
+  geom_line()+
+  facet_grid(~ nSample~mode, scales = "free")
+
+
+## Mean 
+p_base = ggplot(performdat_degenes_median,
+                aes(col = Methods, group = Methods, x = simul.data_mean_median))+
+  geom_vline(xintercept = unique(performdat_degenes$simul.data_mean_median[performdat_degenes$simul.data=="TCGA.KIRC"]),
+             linetype = "dotted")+
+  geom_point()+
+  geom_line()+
+  facet_grid(~nDE ~ nSample ~ mode )
+# AUC 
+p_base %+% list(aes(y = median_auc))
+# TPR 
+p_base %+% list(aes(y = median_tpr))
+# trueFDR 
+p_base %+% list(aes(y = median_truefdr))
+# FPC
+ggplot(performdat_nodegenes_median,
+       aes( y = median_fpc,col = Methods, group = Methods, x = simul.data_mean_median))+
+  geom_vline(xintercept = unique(performdat_nodegenes$simul.data_mean_median[performdat_nodegenes$simul.data=="TCGA.KIRC"]),
+             linetype = "dotted")+
+  geom_point()+
+  geom_line()+
+  facet_grid(~ nSample~mode, scales = "free")
+
+
+
+# Association of relative performances with data set characteristics -------------------------------
+
+# Try to reproduce results of Table 2 in Baik et al. 
+# kirc_degenes = melt(performdat_degenes_median %>% filter(simul.data == "TCGA.KIRC"),
+#                     measure.vars = c("median_auc", "median_tpr", "median_truefdr"),
+#                     variable.name = "performance_measure",
+#                     value.name = "performance_value")
+
+kirc_degenes = performdat_degenes_median %>% filter(simul.data == "TCGA.KIRC"& 
+                                                      nDE !=  "pDE = 10%") %>% 
+  group_by(nSample, mode, nDE) %>%
+ # mutate(relbestauc = 1-(median_auc/max(median_auc))) %>% 
+  mutate(diffbestauc = max(median_auc)-median_auc,
+         diffbesttpr = max(median_tpr)-median_tpr,
+         rank_tpr = rank(-median_tpr, ties.method = "first"),
+         rank_fdr = rank(median_truefdr, ties.method = "first")) %>%
+  rowwise() %>% 
+  mutate(mean_rank = mean(c(rank_tpr, rank_fdr), na.rm = TRUE)) %>%
+  ungroup() %>%
+ # filter(diffbestauc < 0.03) %>% # & (rank_tpr <= 4 | rank_fdr <= 4) )
+  filter(diffbestauc == 0 | (diffbestauc < 0.03 & rank_tpr <= 5)) %>% #| (diffbestauc < 0.03 & median_truefdr > 0.25)) %>% # & (rank_tpr <= 4 | rank_fdr <= 4) )
+  mutate(nDE_baiktable = case_when(
+    nDE %in% c("pDE = 30%","pDE = 60%") ~ "pDE >= 30%",
+    .default = nDE
+  )) %>%
+  group_by(Methods, nSample, mode, nDE_baiktable) %>% 
+  count() %>%
+  filter(nDE_baiktable =="pDE = 5%" | n > 1)
+
+
+kirc_degenes %>% 
+  group_by(nSample, mode, nDE_baiktable) %>%
+  select(nSample, mode, nDE_baiktable, Methods) %>% distinct() %>%
+  arrange(mode, nSample) %>%
+  mutate(methods = paste(unique(Methods), collapse = ",")) %>% 
+  select(-Methods) %>% distinct()
+
+
+kirc_degenes %>% filter(nSample == 3 & mode == "D" & nDE %in% c("pDE = 30%","pDE = 60%")) %>%
+  ggplot(aes(x = Methods, y = performance_value, col = Methods))+
+  geom_point()+
+  facet_wrap(~performance_measure, scale = "free")+
+  theme(legend.position = "bottom",
+        axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+
+
+
+
