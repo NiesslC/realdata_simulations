@@ -1,4 +1,4 @@
-# reproducibility of Baik et al.
+# reproducibility of Baik et al. (Figure 2 and 3)
 # Evaluate performance results of methods 
 load("./deanalysis/results/rdata/performdat_degenes.RData")
 load("./deanalysis/results/rdata/performdat_nodegenes.RData")
