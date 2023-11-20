@@ -63,6 +63,9 @@ ggplot(disp.total_all %>% group_by(dataset, nsample) %>%
   geom_point()
 # mean seems to be very similar, dispersion not 
 
+# Check number of NAs in DESeq.pc & DESeq2 ---------------------------------------------------------
+performdat_degenes %>% group_by(Methods) %>% summarise(sum = sum(nas))
+
 # Check NAs in trueFDR -----------------------------------------------------------------------------
 # no NAs in other performance meausres
 stopifnot(sum(is.na(performdat_degenes$AUC)) == 0 & sum(is.na(performdat_degenes$TPR)) == 0 &
