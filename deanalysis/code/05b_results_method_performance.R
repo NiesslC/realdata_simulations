@@ -172,7 +172,41 @@ ggplot(performdat_nodegenes_median,
 
 # Association of relative performances with data set characteristics -------------------------------
 
-# Try to reproduce results of Table 2 in Baik et al. 
+# Missing: performance measures apart from AUC
+
+# Top performing methods (AUC) ----
+topranking = performdat_degenes_median %>% 
+  mutate(simul.data = gsub("TCGA.", "", simul.data))
+topranking = topranking %>% 
+  group_by(simul.data,nSample, mode, nDE) %>%
+  # mutate(relbestauc = 1-(median_auc/max(median_auc))) %>% 
+  mutate(diffbestauc = max(median_auc)-median_auc,
+         diffbesttpr = max(median_tpr)-median_tpr,
+         rank_tpr = rank(-median_tpr, ties.method = "first"),
+         rank_fdr = rank(median_truefdr, ties.method = "first"),
+         topmethod = diffbestauc < 0.03,
+         simul.data = factor(simul.data, levels = 
+                               topranking %>% 
+                               ungroup() %>%
+                               select(simul.data, simul.data_disp_median) %>%
+                               distinct(simul.data, simul.data_disp_median) %>% 
+                               arrange(simul.data_disp_median) %>% .$simul.data)) %>%
+  ungroup() %>% 
+  select(Methods, topmethod, simul.data, nSample, mode, nDE) 
+ggplot(topranking, aes(y=Methods, x=simul.data, fill=topmethod)) +
+  geom_tile(color='black') +
+  scale_fill_manual(values=c(`FALSE`="gray90", `TRUE`="mediumseagreen")) +
+  #coord_fixed() +
+  scale_x_discrete(expand=expansion(0)) +
+  scale_y_discrete(expand=expansion(0))+
+  facet_wrap(mode ~ nSample ~ nDE, ncol = 4)+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+#  scale_x_discrete() +
+  annotate(geom = "rect", ymin = 0 , ymax = 11.5, xmax = 4.5, xmin = 3.5, alpha = .1, col = "red") 
+
+
+
+# Try to reproduce results of Table 2 in Baik et al. ----
 # kirc_degenes = melt(performdat_degenes_median %>% filter(simul.data == "TCGA.KIRC"),
 #                     measure.vars = c("median_auc", "median_tpr", "median_truefdr"),
 #                     variable.name = "performance_measure",
