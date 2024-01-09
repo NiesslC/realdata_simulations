@@ -294,6 +294,7 @@ future.apply::future_lapply(1:length(data.types.names), function(i) {
 
 # @ JUlIAN FEHLER AB HIER (folgendes ist der normale Befehl, habe ab  Zeile 313 versucht, den Fehler iwie einzugrenzen)
 # plan(multisession, workers = 1) # 14 throws error 
+# -> ends in weird crash
 # future.apply::future_lapply(1:length(data.types.names), function(i) {
 #   runSimulationAnalysis(working.dir=paste0(getwd(),"/deanalysis/data/simulation_degenes/") , # have to use whole path otherwise error
 #                         output.dir=paste0(analysis.dir, "rdata_degenes/"),
@@ -346,5 +347,22 @@ future.apply::future_lapply(1:length(data.types.names), function(i) {
 
 
 
+
+set.seed(19559)
+for(i in 1){######length(data.types.names)){
+  runSimulationAnalysis(working.dir=paste0(getwd(),"/deanalysis/data/simulation_degenes/") , # have to use whole path otherwise error
+                        output.dir=paste0(analysis.dir, "test/"),#paste0(analysis.dir, "rdata_degenes/"),
+                        real=FALSE,
+                        data.types=data.types.names[i],
+                        rep.start = 10, ##############
+                        rep.end=param.fig2$rep.end,
+                        nsample=param.fig2$nsample,
+                        nDE=param.fig2$nDE,
+                        fraction.upregulated=param.fig2$fraction.upregulated,
+                        disp.Types = param.fig2$disp.Types,
+                        modes = param.fig2$modes,
+                        AnalysisMethods = param.fig2$AnalysisMethods_seed_yes[6], # "SAMseq"
+                        para=list())
+}
 
 
