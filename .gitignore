@@ -3,7 +3,7 @@
 .Rhistory
 .RData
 .Ruserdata
-deanalysis/results/rdata
+deanalysis/results/rdata/*
 !deanalysis/results/rdata/performdat_degenes.RData
 !deanalysis/results/rdata/performdat_nodegenes.RData
 deanalysis/data
