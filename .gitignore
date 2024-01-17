@@ -4,8 +4,10 @@
 .RData
 .Ruserdata
 deanalysis/results/rdata
+!deanalysis/results/rdata/performdat_degenes.RData
+!deanalysis/results/rdata/performdat_nodegenes.RData
 deanalysis/data
+
 ordinal/results/rdata/*
-!ordinal/results/rdata/performdat_degenes.RData
-!ordinal/results/rdata/performdat_nodegenes.RData
+!ordinal/results/rdata/performdat.RData
 ordinal/data/simulation
