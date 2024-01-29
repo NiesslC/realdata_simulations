@@ -67,7 +67,7 @@ ggplot(disp.total_all %>% group_by(dataset, nsample) %>%
 performdat_degenes %>% group_by(Methods) %>% summarise(sum = sum(nas))
 
 # Check NAs in trueFDR -----------------------------------------------------------------------------
-# no NAs in other performance meausres
+# no NAs in other performance measures
 stopifnot(sum(is.na(performdat_degenes$AUC)) == 0 & sum(is.na(performdat_degenes$TPR)) == 0 &
   sum(is.na(performdat_nodegenes$FPC)) == 0 )
 # inspect NAs of trueFDR
