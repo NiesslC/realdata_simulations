@@ -39,9 +39,9 @@ rm(mean_disp_info)
 # calculate median performance values 
 performdat_degenes_median = performdat_degenes %>% group_by(Methods,simul.data,simul.data_mean_median,simul.data_disp_median,
                                                             nSample,mode,nDE) %>%
-  summarise(median_auc = mean(AUC, na.rm = TRUE),
-            median_tpr = mean(TPR, na.rm = TRUE),
-            median_truefdr = mean(trueFDR, na.rm = TRUE))
+  summarise(median_auc = median(AUC, na.rm = TRUE),
+            median_tpr = median(TPR, na.rm = TRUE),
+            median_truefdr = median(trueFDR, na.rm = TRUE))
 
 performdat_nodegenes_median = performdat_nodegenes %>% group_by(Methods,simul.data,simul.data_mean_median,simul.data_disp_median,
                                                                 nSample,mode) %>%
@@ -67,7 +67,7 @@ ggplot(disp.total_all %>% group_by(dataset, nsample) %>%
 performdat_degenes %>% group_by(Methods) %>% summarise(sum = sum(nas))
 
 # Check NAs in trueFDR -----------------------------------------------------------------------------
-# no NAs in other performance meausres
+# no NAs in other performance measures
 stopifnot(sum(is.na(performdat_degenes$AUC)) == 0 & sum(is.na(performdat_degenes$TPR)) == 0 &
   sum(is.na(performdat_nodegenes$FPC)) == 0 )
 # inspect NAs of trueFDR
