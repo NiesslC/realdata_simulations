@@ -7,7 +7,9 @@ deanalysis/results/rdata/*
 !deanalysis/results/rdata/performdat_degenes.RData
 !deanalysis/results/rdata/performdat_nodegenes.RData
 deanalysis/data
+deanalysis/code/sandbox
 
 ordinal/results/rdata/*
 !ordinal/results/rdata/performdat.RData
 ordinal/data/simulation
+ordinal/code/sandbox
