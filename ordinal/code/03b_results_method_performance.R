@@ -4,20 +4,50 @@ library(ggplot2); theme_set(theme_bw())
 library(gridExtra)
 library(latex2exp)
 library(reshape2)
+library(tidyr)
+library(stringr)
+library(ggrepel)
 
+# 1) PREPARATIONS ----------------------------------------------------------------------------------
 load("./ordinal/results/rdata/performdat.RData")
 load("./ordinal/data/probabilities.RData")
 performdat = performdat %>% mutate(method_label = gsub("p_|_reject", "", method))
+
 # Add some quantities of probability vectors to performance dataset --------------------------------
 performdat = full_join(performdat, 
           bind_rows(param_user, param_nejm) %>% select(settingname, k, maxdiff_or, mean_or, rel_effect, 
                                                        asymp_var1, asymp_var2, kl1, kl2),
           by = c("settingname", "k"))
+# Only consider settings with 7 categories ---------------------------------------------------------
+performdat = performdat %>% filter(k == 7)
+param_nejm = param_nejm %>% filter(k == 7)
+param_user = param_user %>% filter(k == 7)
 
+# Long format --------------------------------------------------------------------------------------
+param_nejm_long = melt(param_nejm, measure.vars = c(paste0("group1_h",1:8), paste0("group2_h", 1:8)),
+                       value.name  = "prob")
+param_nejm_long = param_nejm_long %>% mutate(group = str_split(param_nejm_long$variable,"_h", simplify = TRUE)[,1],
+                                             h =  str_split(param_nejm_long$variable,"_h", simplify = TRUE)[,2]) %>%
+  drop_na(prob)
+param_user_long = melt(param_user, measure.vars = c(paste0("group1_h",1:7), paste0("group2_h", 1:7)),
+                       value.name  = "prob")
+param_user_long = param_user_long %>% mutate(group = str_split(param_user_long$variable,"_h", simplify = TRUE)[,1],
+                                             h =  str_split(param_user_long$variable,"_h", simplify = TRUE)[,2]) %>%
+  drop_na(prob)
+
+# 2) CHECK RESULTS & DATA CHARACTERISTICS ----------------------------------------------------------
 # Number of simulated data sets --------------------------------------------------------------------
-ggplot(performdat %>% filter(method == "p_wilcox_reject"), aes(x = n_rep_narm))+
+ggplot(performdat %>% filter(method == "p_wilcox_reject"), # only for one method
+       aes(x = n_rep_narm))+
   geom_histogram()
+table(performdat$settingname, performdat$ground_truth) #,performdat$method, performdat$nsample)
 performdat = performdat %>% filter(n_rep_narm > 8000)
+table(performdat$settingname, performdat$ground_truth)
+
+performdat %>% filter(ground_truth == "diff_probs") %>% 
+  select(settingname, n_rep_narm, nsample) %>% distinct() %>% 
+  select(settingname, nsample) %>% table
+table(performdat$n_rep_narm == 10000, performdat$nsample)
 
 # Compare overall rejection rates ------------------------------------------------------------------
 ggplot(performdat %>% filter(ground_truth== "diff_probs"), 
@@ -26,8 +56,10 @@ ggplot(performdat %>% filter(ground_truth== "diff_probs"),
   facet_wrap(~nsample)
 ggplot(performdat %>% filter(ground_truth== "same_probs"), 
        aes(x = factor(method_label), y = reject, col = source))+
+  geom_hline(yintercept = 0.05, linetype = "dashed")+
   geom_boxplot()+
   facet_wrap(~nsample)
+  
 
 # Number of expected observations per category -----------------------------------------------------
 performdat = performdat %>% mutate(expobs_below5 = case_when(
@@ -74,9 +106,11 @@ ggplot(performdat %>% filter(ground_truth== "diff_probs"),# %>% filter(nsample =
   geom_point()+
   facet_wrap(~ nsample + method_label, ncol = 4)
 ggplot(performdat %>% filter(ground_truth== "diff_probs"),# %>% filter(nsample == 60), 
-       aes(x = mean_or, y = reject, shape = source, col = method_label))+
+      # aes(x = mean_or, y = reject, shape = source, col = method_label))+
+       aes(x = mean_or, y = reject, col = source))+
   geom_point()+
-  facet_wrap(~ nsample + method_label, ncol = 4)
+  facet_wrap(~ nsample + method_label, ncol = 4)+
+  geom_vline(xintercept = 1, linetype = "dashed")
 
 # Relative effect ---------------------------------------------------------------------------------
 ggplot(performdat %>% filter(ground_truth== "diff_probs")%>%
@@ -89,6 +123,12 @@ ggplot(performdat %>% filter(ground_truth== "diff_probs"),# %>% filter(nsample =
        aes(x = abs(0.5-rel_effect), y = reject, shape = source, col = method_label))+
   geom_point()+
   facet_wrap(~ nsample + method_label, ncol = 4)
+
+ggplot(performdat %>% filter(ground_truth== "diff_probs"),# %>% filter(nsample == 60), 
+       aes(x = abs(0.5-rel_effect), y = reject, shape = method_label, col = source))+
+  geom_point()+
+#  geom_line()+
+  facet_grid(nsample~method_label)
 
 # Asymptotic variance ------------------------------------------------------------------------------
 ggplot(performdat %>%
@@ -135,77 +175,96 @@ ggplot(performdat %>% filter(ground_truth== "diff_probs"),# %>% filter(nsample =
   facet_wrap(~ nsample + method_label, ncol = 4)
 
 
-# # Plots --------------------------------------------------------------------------------------------
-# load("./ordinal/results/rdata/rejectionrate_user_nejm_null.RData")
-# 
-# reject = bind_rows(reject_user %>% mutate(source = "user"),
-#                    reject_nejm  %>% mutate(source = "nejm")) %>%
-#   mutate(source = factor(source, levels = c("user", "nejm"),
-#                          labels = c("User", "NEJM")))
-# reject = reject %>% 
-#   mutate(nlabel = factor(paste0("n = ", nsample/2, " per group"),
-#                          levels = paste0("n = ", sort(unique(reject$nsample))/2, " per group")))
-# reject_below5 = reject %>% #group_by(method, nsample, source, k) %>% #filter(rejectrate < 0.04) %>% 
-#   mutate_at(vars(starts_with("group2_h")), ~ .*nsample) %>%
-#   mutate(below5 = rowSums(across(starts_with("group2_h")) < 5, na.rm = TRUE))
-# 
-# cols = c("#FF9D73","#998EC3")
-# textsize = 18
-# ggplot(reject %>% filter(k %in% 3:4), aes(col = as.factor(source), x = method, y = rejectrate))+
-#   geom_hline(yintercept = 0.05, linetype = "dotted")+
-#   geom_boxplot()+
-#   facet_wrap(~nlabel, nrow =2)+
-#   scale_x_discrete(labels = c("Wilcox.", "Fisher", "Chi", "Ordinal\nRegression"))+
-#   labs(x = "", y = "Type I error rate")+
-#   scale_y_continuous(labels = scales::number_format(accuracy = 0.001))+
-#   scale_color_manual(name = "", values = cols)+
-#   theme(text = element_text(size = textsize),
-#         axis.text.x = element_text(size = textsize-5),
-#         legend.position = "top")
-# ggsave("./ordinal/results/plots/cen_reject_k34.pdf", width = 9, height = 5)
-# 
-# ggplot(reject %>% filter(k %in% 5:6), aes(col = as.factor(source), x = method, y = rejectrate))+
-#   geom_hline(yintercept = 0.05, linetype = "dotted")+
-#   geom_boxplot()+
-#   facet_wrap(~nlabel, nrow =2)+
-#   scale_x_discrete(labels = c("Wilcox.", "Fisher", "Chi", "Ordinal\nRegression"))+
-#   labs(x = "", y = "Type I error rate")+
-#   scale_y_continuous(labels = scales::number_format(accuracy = 0.001))+
-#   scale_color_manual(name = "", values = cols)+
-#   theme(text = element_text(size = textsize),
-#         axis.text.x = element_text(size = textsize-5),
-#         legend.position = "top")
-# ggsave("./ordinal/results/plots/cen_reject_k56.pdf", width = 9, height = 5)
-# 
-# ggplot(reject %>% filter(k %in% 7:8), aes(col = as.factor(source), x = method, y = rejectrate))+
-#   geom_hline(yintercept = 0.05, linetype = "dotted")+
-#   geom_boxplot()+
-#   facet_wrap(~nlabel, nrow =2)+
-#   scale_x_discrete(labels = c("Wilcox.", "Fisher", "Chi", "Ordinal\nRegression"))+
-#   labs(x = "", y = "Type I error rate")+
-#   scale_y_continuous(labels = scales::number_format(accuracy = 0.001))+
-#   scale_color_manual(name = "", values = cols)+
-#   theme(text = element_text(size = textsize),
-#         axis.text.x = element_text(size = textsize-5),
-#         legend.position = "top")
-# ggsave("./ordinal/results/plots/cen_reject_k78.pdf", width = 9, height = 5)
-# 
-# 
-# ggplot(reject_below5 %>% filter(method == "p_chisq_reject"), aes(x = factor(below5), 
-#                                                                  y = rejectrate, col = source))+
-#   geom_hline(yintercept = 0.05, linetype = "dotted")+
-#   geom_boxplot()+
-#   scale_color_manual(name = "", values = cols)+
-#   labs(x = "Number of categories with expected \nno. of observations < 5", y = "Type I error rate")+
-#   theme(text = element_text(size = textsize+1),
-#         legend.position = "top")
-# ggsave("./ordinal/results/cen_reject_chisq.pdf", width = 7, height = 4)
-# 
-# # out = unique(t$settingname) 
-# # ggplot(param_nejm_long %>% filter(group == "group2") , 
-# #        aes(x = h, y = prob, fill = settingname %in%out))+
-# #   geom_bar(stat = "identity", position = "dodge")+
-# #   facet_wrap(~settingname, scales = "free_x")#+
+# 3) PLOTS FOR PUBLICATION -------------------------------------------------------------------------
+
+cols = c("#00CDCD","#DDA0DD") ##7AC5CD") # "#FFB90F", c("#00CDCD", "#FFFFFF", "#FFFFFF")
+performdat = performdat %>% mutate(method_label = factor(method_label,
+                                            levels = c("chisq", "fisher",
+                                                       "lrm", "wilcox"),
+                                            labels = c("Chi-square test", 
+                                                       "Fisher's exact test", 
+                                                       "Wilcoxon \nrank-sum test",
+                                                       "PO ordinal \nlogistic regression")),
+                      source = factor(source,
+                                      levels = c("user","nejm"),
+                                      labels = c("Researcher-specified \n(4 options)",
+                                                 "Based on NEJM \n(15 options)")),
+                      nsample = factor(nsample, 
+                                       levels = c("60", "120", "200", "300", "600"),
+                                       labels = paste0("n = ", c("60", "120", "200", "300", "600"))))
+                        
+
+# A) Dataset characteristics
+param_examples = bind_rows(param_user_long, param_nejm_long) %>% filter(settingname %in% c("tao2022", "k7_id2")) %>% ungroup()
+p_bsp = ggplot(data = param_examples, aes(x = h, y = prob))+
+  geom_bar(stat = "identity", position = "dodge", aes(fill = group), col  = "grey60")+
+  facet_wrap(~settingname, nrow = 1)+
+ #guides(fill = "none")+
+  labs(x = "Ordinal category", y = "Estimated outcome probability", fill = "Treatment group")+
+  scale_fill_manual(values = c("#E5E5E5", "#A6A6A6"), labels = c("1", "2"))+
+  geom_text(data = param_examples %>% select(settingname, rel_effect) %>% distinct(),
+            x = 2.5, y= 0.5, aes(label = paste0("Relative effect = ", sprintf('%.2f',round(rel_effect,2)))))+
+  theme(legend.position = "top")
+ggsave(file = "./ordinal/results/plots/ordinal_bsp.eps", height = 3.5, width =6)
+p_char = ggplot(performdat %>% select(settingname,source,rel_effect) %>% distinct(),
+       aes(x = source, y = abs(0.5-rel_effect), fill = source))+
+  geom_boxplot()+
+  guides(fill = "none")+
+  theme_bw()+
+  scale_fill_manual(values = cols)+
+  labs(x = "Source", y = "|Relative effect - 0.5|")#+
+  #theme(text = element_text(size =17))
+# ggpubr::ggarrange(p_bsp, p_char,
+#                   ncol = 1, 
+#                   labels = c("a", "b"),
+#                   font.label = list(size = 13))
+ggsave(file = "./ordinal/results/plots/ordinal_characteristics.eps", height = 3.5, width =6)
+
+
+# B) Dataset characteristics vs absolute performance
+p_abs = ggplot(performdat %>% filter(ground_truth== "diff_probs"), 
+       aes(x = abs(0.5-rel_effect), y = reject, col = source))+
+  geom_point()+
+  #  geom_line()+
+  facet_grid(nsample~method_label)+
+  scale_color_manual(values = cols)+
+  labs(col = "Source", x = "|Relative effect - 0.5|",y = "Estimated power")+
+  theme(legend.position = "top",
+        strip.background = element_rect(fill="grey90"),
+        axis.text.x = element_text(size = 8.4),
+        axis.text.y = element_text(size = 8.4))
+
+# C) Dataset characteristics vs. relative performance
+rel_performdat = performdat %>% filter(ground_truth== "diff_probs") %>% 
+     group_by(settingname, nsample) %>% 
+  mutate(diff_bestreject = reject-max(reject)) %>% ungroup()
+
+p_rel = ggplot(rel_performdat %>% filter(ground_truth== "diff_probs"), 
+       aes(x = abs(0.5-rel_effect), y = diff_bestreject, col = source))+
+  geom_point()+
+  facet_grid(nsample~method_label)+
+  scale_color_manual(values = cols)+
+  labs(col = "Source", x = "|Relative effect - 0.5|",y = "Estimated power - max(estimated power)")+
+  theme(legend.position = "top",
+        strip.background = element_rect(fill="grey90"),
+        axis.text.x = element_text(size = 8.4),
+        axis.text.y = element_text(size = 8.4))
+
+
+ggpubr::ggarrange(p_abs, p_rel,
+                  ncol = 1, 
+                  labels = c("a", "b"),
+                  font.label = list(size = 13))
+ggsave(file = "./ordinal/results/plots/ordinal_results.eps", height = 9, width =6.5)
+
+
+
+
+
+
+
+
+
 
 
 
