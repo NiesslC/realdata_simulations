@@ -9,7 +9,7 @@ get_paired_data_fct = function(dataset){
     return(NA)
   } else{
     id=id %>% group_by(patient) %>% dplyr::filter( n() >= 2 & n_distinct(type)>1)
-    stopifnot(all(id %>% count() %>% .$n == 2)) # 2 samples per individual
+    stopifnot(all(id %>% dplyr::count() %>% .$n == 2)) # 2 samples per individual
     dataset = dataset[,which(colnames(dataset) %in% id$ids)]
     return(dataset)
   }
