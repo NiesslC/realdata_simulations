@@ -204,8 +204,8 @@ p_bsp = ggplot(data = param_examples, aes(x = h, y = prob))+
   scale_fill_manual(values = c("#E5E5E5", "#A6A6A6"), labels = c("1", "2"))+
   geom_text(data = param_examples %>% select(settingname, rel_effect) %>% distinct(),
             x = 2.5, y= 0.5, aes(label = paste0("Relative effect = ", sprintf('%.2f',round(rel_effect,2)))))+
-  theme(legend.position = "top")+
-  theme_bw()
+  theme_bw()+
+  theme(legend.position = "top")
 ggsave(file = "./ordinal/results/plots/ordinal_bsp.eps", height = 3.5, width =6)
 p_char = ggplot(performdat %>% select(settingname,source,rel_effect) %>% distinct(),
        aes(x = source, y = abs(0.5-rel_effect), fill = source))+
