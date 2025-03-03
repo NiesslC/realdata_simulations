@@ -187,8 +187,8 @@ performdat = performdat %>% mutate(method_label = factor(method_label,
                                                        "PO ordinal \nlogistic regression")),
                       source = factor(source,
                                       levels = c("user","nejm"),
-                                      labels = c("Researcher-specified \n(4 options)",
-                                                 "Based on NEJM \n(15 options)")),
+                                      labels = c("Researcher-specified",
+                                                 "Real-data-based")),
                       nsample = factor(nsample, 
                                        levels = c("60", "120", "200", "300", "600"),
                                        labels = paste0("n = ", c("60", "120", "200", "300", "600"))))
@@ -213,7 +213,7 @@ p_char = ggplot(performdat %>% select(settingname,source,rel_effect) %>% distinc
   guides(fill = "none")+
   theme_bw()+
   scale_fill_manual(values = cols)+
-  labs(x = "Source", y = "|Relative effect - 0.5|")#+
+  labs(x = "Type of parameter specification", y = "|Relative effect - 0.5|")#+
   #theme(text = element_text(size =17))
 # ggpubr::ggarrange(p_bsp, p_char,
 #                   ncol = 1, 
@@ -229,7 +229,7 @@ p_abs = ggplot(performdat %>% filter(ground_truth== "diff_probs"),
   #  geom_line()+
   facet_grid(nsample~method_label)+
   scale_color_manual(values = cols)+
-  labs(col = "Source", x = "|Relative effect - 0.5|",y = "Estimated power")+
+  labs(col = "Type of parameter specification", x = "|Relative effect - 0.5|",y = "Estimated power")+
   theme(legend.position = "top",
         strip.background = element_rect(fill="grey90"),
         axis.text.x = element_text(size = 8.4),
@@ -245,7 +245,7 @@ p_rel = ggplot(rel_performdat %>% filter(ground_truth== "diff_probs"),
   geom_point()+
   facet_grid(nsample~method_label)+
   scale_color_manual(values = cols)+
-  labs(col = "Source", x = "|Relative effect - 0.5|",y = "Estimated power - max(estimated power)")+
+  labs(col = "Type of parameter specification", x = "|Relative effect - 0.5|",y = "Estimated power - max(estimated power)")+
   theme(legend.position = "top",
         strip.background = element_rect(fill="grey90"),
         axis.text.x = element_text(size = 8.4),
