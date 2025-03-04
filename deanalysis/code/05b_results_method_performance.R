@@ -3,6 +3,7 @@ library(dplyr)
 library(reshape2)
 library(ggplot2); theme_set(theme_bw())
 library(latex2exp)
+library(stringr)
 
 # 1) PREPARATIONS ----------------------------------------------------------------------------------
 # Get TCGA parameter meta data ---------------------------------------------------------------------
@@ -306,7 +307,7 @@ ggplot(performdat_degenes_median %>%   ungroup() %>% select(simul.data, simul.da
   scale_color_manual(values = rev(cols), 
                      breaks = c(FALSE,TRUE),
                      labels = c("TCGA dataset used \nby Baik et al. (2020)","Other 13 selected \nTCGA datasets") )+
-  labs(x = "TCGA dataset", y = "Median dispersion", col = "Source")+
+  labs(x = "TCGA dataset", y = "Median dispersion", col = "Dataset selection")+
   theme(legend.position = "top",
         text = element_text(size = 12),
         axis.text.x = element_text(size = 11,angle=90, hjust=1))
@@ -333,7 +334,7 @@ p_abs = ggplot(performdat_degenes_median_subset,
   facet_grid(nDE + nSample  ~ Methods, labeller = label_parsed)+
   theme_bw()+
   labs(y = "AUC", 
-       col = "Source",
+       col = "Dataset selection",
        x = "Median dispersion \n(averaged across all genes in the real dataset)")+
   theme(legend.position = "top",
         strip.background = element_rect(fill="grey90"))
@@ -355,7 +356,7 @@ p_rel = ggplot(performdat_degenes_diff_subset,
   facet_grid(nDE + nSample  ~ Methods, labeller = label_parsed)+
   theme_bw()+
   labs(y = "AUC-max(AUC)", 
-       col = "Source",
+       col = "Dataset selection",
        x = "Median dispersion \n(averaged across all genes in the real dataset)")+
   theme(legend.position = "top",
         strip.background = element_rect(fill="grey90"))
@@ -387,7 +388,7 @@ ggplot(performdat_degenes_median,
   facet_grid(nDE + nSample  ~ Methods, labeller = label_parsed)+
   theme_bw()+
   labs(y = "AUC", 
-       col = "Source",
+       col = "Dataset selection",
        x = "Median dispersion \n(averaged across all genes in the real dataset)")+
   theme(legend.position = "top",
         strip.background = element_rect(fill="grey90"))
@@ -407,7 +408,7 @@ ggplot(performdat_degenes_diff,
   facet_grid(nDE + nSample  ~ Methods, labeller = label_parsed)+
   theme_bw()+
   labs(y = "max(AUC) - AUC", 
-       col = "Source",
+       col = "Dataset selection",
        x = "Median dispersion \n(averaged across all genes in the real dataset)")+
   theme(legend.position = "top",
         strip.background = element_rect(fill="grey90"))
