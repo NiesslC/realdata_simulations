@@ -335,7 +335,7 @@ p_abs = ggplot(performdat_degenes_median_subset,
   theme_bw()+
   labs(y = "AUC", 
        col = "Dataset selection",
-       x = "Median dispersion \n(averaged across all genes in the real dataset)")+
+       x = "Median dispersion")+
   theme(legend.position = "top",
         strip.background = element_rect(fill="grey90"))
 
@@ -357,7 +357,7 @@ p_rel = ggplot(performdat_degenes_diff_subset,
   theme_bw()+
   labs(y = "AUC-max(AUC)", 
        col = "Dataset selection",
-       x = "Median dispersion \n(averaged across all genes in the real dataset)")+
+       x = "Median dispersion")+
   theme(legend.position = "top",
         strip.background = element_rect(fill="grey90"))
 
@@ -372,43 +372,49 @@ ggsave(file = "./deanalysis/results/plots/deanalysis_results.eps",
 
 
 # all methods and parameters
+plotres = function(dataset, rel){
+  if(rel){
+    y = "AUC-max(AUC)"
+  } else{
+    y= "AUC"
+  }
+  p = ggplot(dataset,
+         aes(y = median_auc, col = simul.data == "TCGA.KIRC", group = Methods, x = simul.data_disp_median))+
+    geom_errorbar(data = dataset %>% filter(simul.data != "TCGA.KIRC"),
+                  aes(ymin = min_auc,ymax = max_auc))+
+    geom_point(data = dataset %>% filter(simul.data != "TCGA.KIRC"))+
+    geom_errorbar(data = dataset %>% filter(simul.data == "TCGA.KIRC"),
+                  aes(ymin = min_auc,ymax = max_auc),width =0, linewidth = 1)+
+    geom_point(data = dataset %>% filter(simul.data == "TCGA.KIRC"), size = 2)+
+    scale_color_manual(values = rev(cols), 
+                       breaks = c(TRUE,FALSE),
+                       labels = c("TCGA dataset used \nby Baik et al. (2020)","Other 13 selected \nTCGA datasets")
+    )+
+    facet_grid(nDE + nSample  ~ Methods, labeller = label_parsed)+
+    theme_bw()+
+    labs(y = y, 
+         col = "Dataset selection",
+         x = "Median dispersion")+
+    theme(legend.position = "top",
+          strip.background = element_rect(fill="grey90"))
+  return(p)
+}
+plotres(performdat_degenes_median  %>% filter(grepl("edgeR|DESe", Methods)), rel = FALSE)
+ggsave(file = "./deanalysis/results/plots/deanalysis_results_supp_a.eps", 
+       height = 7, width =6.5, device = "eps")
+plotres(performdat_degenes_median  %>% filter(!grepl("edgeR|DESe", Methods)), rel = FALSE)
+ggsave(file = "./deanalysis/results/plots/deanalysis_results_supp_b.eps", 
+       height = 7, width =6.5, device = "eps")
 
-ggplot(performdat_degenes_median,
-       aes(y = median_auc,col = simul.data == "TCGA.KIRC", group = Methods, x = simul.data_disp_median))+
-  geom_errorbar(data = performdat_degenes_median %>% filter(simul.data != "TCGA.KIRC"),
-                aes(ymin = min_auc,ymax = max_auc))+
-  geom_point(data = performdat_degenes_median %>% filter(simul.data != "TCGA.KIRC"))+
-  geom_errorbar(data = performdat_degenes_median %>% filter(simul.data == "TCGA.KIRC"),
-                aes(ymin = min_auc,ymax = max_auc),width =0, linewidth = 1)+
-  geom_point(data = performdat_degenes_median %>% filter(simul.data == "TCGA.KIRC"), size = 2)+
-  scale_color_manual(values = rev(cols), 
-                     breaks = c(TRUE,FALSE),
-                     labels = c("TCGA dataset used \nby Baik et al. (2020)","Other 13 selected \nTCGA datasets")
-  )+
-  facet_grid(nDE + nSample  ~ Methods, labeller = label_parsed)+
-  theme_bw()+
-  labs(y = "AUC", 
-       col = "Dataset selection",
-       x = "Median dispersion \n(averaged across all genes in the real dataset)")+
-  theme(legend.position = "top",
-        strip.background = element_rect(fill="grey90"))
+plotres(performdat_degenes_diff %>% filter(grepl("edgeR|DESe", Methods)) %>%
+          rename(min_auc = diff_min_auc, max_auc = diff_max_auc,
+                 median_auc = diff_median_auc), rel = TRUE)
+ggsave(file = "./deanalysis/results/plots/deanalysis_results_supp_c.eps", 
+       height = 7, width =6.5, device = "eps")
+plotres(performdat_degenes_diff %>% filter(!grepl("edgeR|DESe", Methods)) %>%
+          rename(min_auc = diff_min_auc, max_auc = diff_max_auc,
+                 median_auc = diff_median_auc), rel = TRUE)
+ggsave(file = "./deanalysis/results/plots/deanalysis_results_supp_d.eps", 
+       height = 7, width =6.5, device = "eps")
 
-ggplot(performdat_degenes_diff,
-       aes(y = diff_median_auc,col = simul.data == "TCGA.KIRC", group = Methods, x = simul.data_disp_median))+
-  geom_errorbar(data = performdat_degenes_diff %>% filter(simul.data != "TCGA.KIRC"),
-                aes(ymin = diff_min_auc,ymax = diff_max_auc))+
-  geom_point(data = performdat_degenes_diff %>% filter(simul.data != "TCGA.KIRC"))+
-  geom_errorbar(data = performdat_degenes_diff %>% filter(simul.data == "TCGA.KIRC"),
-                aes(ymin = diff_min_auc,ymax = diff_max_auc),width =0, linewidth = 1)+
-  geom_point(data = performdat_degenes_diff %>% filter(simul.data == "TCGA.KIRC"), size = 2)+
-  scale_color_manual(values = rev(cols), 
-                     breaks = c(TRUE,FALSE),
-                     labels = c("TCGA dataset used \nby Baik et al. (2020)","Other 13 selected \nTCGA datasets")
-  )+
-  facet_grid(nDE + nSample  ~ Methods, labeller = label_parsed)+
-  theme_bw()+
-  labs(y = "max(AUC) - AUC", 
-       col = "Dataset selection",
-       x = "Median dispersion \n(averaged across all genes in the real dataset)")+
-  theme(legend.position = "top",
-        strip.background = element_rect(fill="grey90"))
+
