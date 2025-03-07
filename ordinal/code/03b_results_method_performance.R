@@ -207,12 +207,13 @@ p_bsp = ggplot(data = param_examples, aes(x = h, y = prob))+
   theme_bw()+
   theme(legend.position = "top")
 ggsave(file = "./ordinal/results/plots/ordinal_bsp.eps", height = 3.5, width =6)
-p_char = ggplot(performdat %>% select(settingname,source,rel_effect) %>% distinct(),
-       aes(x = source, y = abs(0.5-rel_effect), fill = source))+
-  geom_boxplot()+
-  guides(fill = "none")+
+#p_char =
+  ggplot(performdat %>% select(settingname,source,rel_effect) %>% distinct(),
+       aes(x = source, y = abs(0.5-rel_effect), col = source))+
+  geom_jitter(width = 0.03+
+  guides(col = "none")+
   theme_bw()+
-  scale_fill_manual(values = cols)+
+  scale_color_manual(values = cols)+
   labs(x = "Type of parameter specification", y = "|Relative effect - 0.5|")#+
   #theme(text = element_text(size =17))
 # ggpubr::ggarrange(p_bsp, p_char,
