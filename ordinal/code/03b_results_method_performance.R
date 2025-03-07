@@ -207,14 +207,13 @@ p_bsp = ggplot(data = param_examples, aes(x = h, y = prob))+
   theme_bw()+
   theme(legend.position = "top")
 ggsave(file = "./ordinal/results/plots/ordinal_bsp.eps", height = 3.5, width =6)
-#p_char =
-  ggplot(performdat %>% select(settingname,source,rel_effect) %>% distinct(),
+p_char = ggplot(performdat %>% select(settingname,source,rel_effect) %>% distinct(),
        aes(x = source, y = abs(0.5-rel_effect), col = source))+
-  geom_jitter(width = 0.03+
+  geom_jitter(width = 0.04)+
   guides(col = "none")+
   theme_bw()+
   scale_color_manual(values = cols)+
-  labs(x = "Type of parameter specification", y = "|Relative effect - 0.5|")#+
+  labs(x = "Type of parameter specification", y = "|RE - 0.5|")#+
   #theme(text = element_text(size =17))
 # ggpubr::ggarrange(p_bsp, p_char,
 #                   ncol = 1, 
@@ -230,7 +229,7 @@ p_abs = ggplot(performdat %>% filter(ground_truth== "diff_probs"),
   #  geom_line()+
   facet_grid(nsample~method_label)+
   scale_color_manual(values = cols)+
-  labs(col = "Type of parameter specification", x = "|Relative effect - 0.5|",y = "Estimated power")+
+  labs(col = "Type of parameter specification", x = "|RE - 0.5|",y = "Estimated power")+
   theme(legend.position = "top",
         strip.background = element_rect(fill="grey90"),
         axis.text.x = element_text(size = 8.4),
@@ -246,7 +245,7 @@ p_rel = ggplot(rel_performdat %>% filter(ground_truth== "diff_probs"),
   geom_point()+
   facet_grid(nsample~method_label)+
   scale_color_manual(values = cols)+
-  labs(col = "Type of parameter specification", x = "|Relative effect - 0.5|",y = "Estimated power - max(estimated power)")+
+  labs(col = "Type of parameter specification", x = "|RE - 0.5|",y = "Estimated power - max(estimated power)")+
   theme(legend.position = "top",
         strip.background = element_rect(fill="grey90"),
         axis.text.x = element_text(size = 8.4),
