@@ -237,7 +237,7 @@ p_char = ggplot(bind_rows(param_user, param_nejm) %>%
                     labels = c("Researcher-specified", "Real-data-based"))) %>%  
                   select(settingname,source,rel_effect), 
                 aes(x = source, y = abs(0.5-rel_effect), col = source))+
-  geom_point(position = position_jitter(seed = 15, width = 0.04))+
+  geom_point(position = position_jitter(seed = 33, width = 0.04))+
   guides(col = "none")+
   theme_bw()+
   scale_color_manual(values = cols)+
