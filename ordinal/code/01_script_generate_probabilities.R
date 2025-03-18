@@ -7,6 +7,7 @@ library(tidyr)
 library(purrr)
 library(janitor)
 library(forcats)
+library(reshape2)
 
 source("./ordinal/code/_fcts.R")
 
