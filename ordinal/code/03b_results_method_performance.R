@@ -208,7 +208,7 @@ p_bsp = ggplot(data = param_examples, aes(x = h, y = prob))+
 ggsave(file = "./ordinal/results/plots/ordinal_bsp.eps", height = 3.5, width =6)
 p_char = ggplot(performdat %>% select(settingname,source,rel_effect) %>% distinct(),
        aes(x = source, y = abs(0.5-rel_effect), col = source))+
-  geom_jitter(width = 0.04)+
+  geom_point(position = position_jitter(seed = 15, width = 0.04))+
   guides(col = "none")+
   theme_bw()+
   scale_color_manual(values = cols)+
