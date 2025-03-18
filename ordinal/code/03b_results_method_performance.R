@@ -40,7 +40,7 @@ ggplot(performdat %>% filter(method == "p_wilcox_reject"), # only for one method
        aes(x = n_rep_narm))+
   geom_histogram()
 table(performdat$settingname, performdat$ground_truth) #,performdat$method, performdat$nsample)
-performdat = performdat %>% filter(n_rep_narm > 8000)
+performdat = performdat %>% mutate(settingname = as.factor(settingname)) %>% filter(n_rep_narm > 8000)
 table(performdat$settingname, performdat$ground_truth)
 
 performdat %>% filter(ground_truth == "diff_probs") %>% 
