@@ -194,6 +194,16 @@ performdat = performdat %>% mutate(method_label = factor(method_label,
                         
 
 # A) Dataset characteristics
+##alternative option 1 --> use lines with ## (lines 197-205 replacing line 207, line 230 replacing line 231) and remove lines with ###
+##param_char = bind_rows(param_user_long, param_nejm_long) %>% 
+##  mutate(source = factor(
+##    case_when(journal %in% c("NEJM", "New England Journal of Medicine") ~ "nejm",
+##              is.na(journal) ~ "user"), 
+##    levels = c("user","nejm"),
+##    labels = c("Researcher-specified", "Real-data-based"))) %>%  
+##  select(!(publication_year:outcome_type_cat))
+##param_examples = param_char %>% filter(settingname %in% c("tao2022", "k7_id2"))
+
 param_examples = bind_rows(param_user_long, param_nejm_long) %>% filter(settingname %in% c("tao2022", "k7_id2")) %>% ungroup()
 p_bsp = ggplot(data = param_examples, aes(x = h, y = prob))+
   geom_bar(stat = "identity", position = "dodge", aes(fill = group), col  = "grey60")+
@@ -206,8 +216,27 @@ p_bsp = ggplot(data = param_examples, aes(x = h, y = prob))+
   theme_bw()+
   theme(legend.position = "top")
 ggsave(file = "./ordinal/results/plots/ordinal_bsp.eps", height = 3.5, width =6)
-p_char = ggplot(performdat %>% select(settingname,source,rel_effect) %>% distinct(),
-       aes(x = source, y = abs(0.5-rel_effect), col = source))+
+
+###alternative option 2 --> leave plot above as is but use lines with ### here (lines 221-228 replacing lines 231-238) and remove lines with ##
+###param_char = bind_rows(param_user, param_nejm) %>% 
+###  mutate(source = factor(
+###    case_when(journal %in% c("NEJM", "New England Journal of Medicine") ~ "nejm",
+###              is.na(journal) ~ "user"), 
+###    levels = c("user","nejm"),
+###    labels = c("Researcher-specified", "Real-data-based"))) %>%  
+###  select(settingname,source,rel_effect)
+###p_char = ggplot(param_char,
+
+##p_char = ggplot(param_char %>% select(settingname,source,rel_effect) %>% distinct(),
+p_char = ggplot(bind_rows(param_user, param_nejm) %>% 
+                  mutate(source = factor(
+                    case_when(
+                      journal %in% c("NEJM", "New England Journal of Medicine") ~ "nejm",
+                      is.na(journal) ~ "user"), 
+                    levels = c("user","nejm"),
+                    labels = c("Researcher-specified", "Real-data-based"))) %>%  
+                  select(settingname,source,rel_effect), 
+                aes(x = source, y = abs(0.5-rel_effect), col = source))+
   geom_point(position = position_jitter(seed = 15, width = 0.04))+
   guides(col = "none")+
   theme_bw()+
