@@ -183,15 +183,15 @@ performdat = performdat %>% mutate(method_label = factor(method_label,
                                                        "lrm", "wilcox"),
                                             labels = c("Chi-square test", 
                                                        "Fisher's exact test", 
-                                                       "Wilcoxon \nrank-sum test",
-                                                       "PO ordinal \nlogistic regression")),
+                                                       "Wilcoxon\nrank-sum test",
+                                                       "PO ordinal\nlogistic regression")),
                       source = factor(source,
                                       levels = c("user","nejm"),
                                       labels = c("Researcher-specified",
                                                  "Real-data-based")),
                       nsample = factor(nsample, 
                                        levels = c("60", "120", "200", "300", "600"),
-                                       labels = paste0("n = ", c("60", "120", "200", "300", "600"))))
+                                       labels = paste0("italic(n) == ", c("60", "120", "200", "300", "600"))))
                         
 
 # A) Dataset characteristics
@@ -213,7 +213,7 @@ p_char = ggplot(performdat %>% select(settingname,source,rel_effect) %>% distinc
   guides(col = "none")+
   theme_bw()+
   scale_color_manual(values = cols)+
-  labs(x = "Type of parameter specification", y = "|RE - 0.5|")#+
+  labs(x = "Type of parameter specification", y = expression(group("|", italic(RE) - 0.5, "|")))#+
   #theme(text = element_text(size =17))
 # ggpubr::ggarrange(p_bsp, p_char,
 #                   ncol = 1, 
@@ -227,9 +227,9 @@ p_abs = ggplot(performdat %>% filter(ground_truth== "diff_probs"),
        aes(x = abs(0.5-rel_effect), y = reject, col = source))+
   geom_point()+
   #  geom_line()+
-  facet_grid(nsample~method_label)+
+  facet_grid(nsample~method_label, labeller = labeller(nsample = label_parsed, method_label = label_value))+
   scale_color_manual(values = cols)+
-  labs(col = "Type of parameter specification", x = "|RE - 0.5|",y = "Estimated power")+
+  labs(col = "Type of parameter specification", x = expression(group("|", italic(RE) - 0.5, "|")),y = "Estimated power")+
   theme(legend.position = "top",
         strip.background = element_rect(fill="grey90"),
         axis.text.x = element_text(size = 8.4),
@@ -243,9 +243,9 @@ rel_performdat = performdat %>% filter(ground_truth== "diff_probs") %>%
 p_rel = ggplot(rel_performdat %>% filter(ground_truth== "diff_probs"), 
        aes(x = abs(0.5-rel_effect), y = diff_bestreject, col = source))+
   geom_point()+
-  facet_grid(nsample~method_label)+
+  facet_grid(nsample~method_label, labeller = labeller(nsample = label_parsed, method_label = label_value))+
   scale_color_manual(values = cols)+
-  labs(col = "Type of parameter specification", x = "|RE - 0.5|",y = "Estimated power - max(estimated power)")+
+  labs(col = "Type of parameter specification", x = expression(group("|", italic(RE) - 0.5, "|")),y = bquote("Estimated"~"power" - max*("estimated"~"power")))+
   theme(legend.position = "top",
         strip.background = element_rect(fill="grey90"),
         axis.text.x = element_text(size = 8.4),

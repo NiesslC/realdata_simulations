@@ -272,9 +272,9 @@ performdat_degenes_median = performdat_degenes_median %>%
   filter(mode == "D") %>% 
   mutate(nSample = factor(nSample, 
                                levels = c("3", "10"),
-                               labels = paste0("n == ", c("6", "20"))),
+                               labels = paste0("italic(n) == ", c("6", "20"))),
          nDE = factor(nDE, levels =c("pDE = 5%","pDE = 10%","pDE = 30%","pDE = 60%"),
-                      labels = c("p[DE] == 0.05", "p[DE] == 0.10", "p[DE] == 0.30", "p[DE] == 0.60")))
+                      labels = c("italic(p)[DE] == 0.05", "italic(p)[DE] == 0.10", "italic(p)[DE] == 0.30", "italic(p)[DE] == 0.60")))
 
 performdat_degenes_diff = performdat_degenes %>%  
   group_by(Repeat,simul.data,simul.data_mean_median,simul.data_disp_median,
@@ -289,13 +289,13 @@ performdat_degenes_diff = performdat_degenes_diff %>%
   filter(mode == "D") %>% 
   mutate(nSample = factor(nSample, 
                           levels = c("3", "10"),
-                          labels = paste0("n == ", c("6", "20"))),
+                          labels = paste0("italic(n) == ", c("6", "20"))),
          nDE = factor(nDE, levels =c("pDE = 5%","pDE = 10%","pDE = 30%","pDE = 60%"),
-                      labels = c("p[DE] == 0.05", "p[DE] == 0.10", "p[DE] == 0.30", "p[DE] == 0.60")))
+                      labels = c("italic(p)[DE] == 0.05", "italic(p)[DE] == 0.10", "italic(p)[DE] == 0.30", "italic(p)[DE] == 0.60")))
   
-performdat_degenes_median_subset = performdat_degenes_median %>% filter(nDE %in% c("p[DE] == 0.05", "p[DE] == 0.30") &
+performdat_degenes_median_subset = performdat_degenes_median %>% filter(nDE %in% c("italic(p)[DE] == 0.05", "italic(p)[DE] == 0.30") &
                                                                           !(Methods %in% c("BaySeq", "voom.tmm","voom.qn","voom.sw")))
-performdat_degenes_diff_subset = performdat_degenes_diff %>% filter(nDE %in% c("p[DE] == 0.05", "p[DE] == 0.30") &
+performdat_degenes_diff_subset = performdat_degenes_diff %>% filter(nDE %in% c("italic(p)[DE] == 0.05", "italic(p)[DE] == 0.30") &
                                                                      !(Methods %in% c("BaySeq", "voom.tmm","voom.qn","voom.sw")))
 # A) Dataset characteristics
 ggplot(performdat_degenes_median %>%   ungroup() %>% select(simul.data, simul.data_disp_median) %>%
@@ -333,7 +333,7 @@ p_abs = ggplot(performdat_degenes_median_subset,
                     )+
   facet_grid(nDE + nSample  ~ Methods, labeller = label_parsed)+
   theme_bw()+
-  labs(y = "AUC", 
+  labs(y = bquote(AUC), 
        col = "Dataset selection",
        x = "Median dispersion")+
   theme(legend.position = "top",
@@ -355,7 +355,7 @@ p_rel = ggplot(performdat_degenes_diff_subset,
   )+
   facet_grid(nDE + nSample  ~ Methods, labeller = label_parsed)+
   theme_bw()+
-  labs(y = "AUC-max(AUC)", 
+  labs(y = bquote(AUC - max*(AUC)), 
        col = "Dataset selection",
        x = "Median dispersion")+
   theme(legend.position = "top",
@@ -374,9 +374,9 @@ ggsave(file = "./deanalysis/results/plots/deanalysis_results.eps",
 # all methods and parameters
 plotres = function(dataset, rel){
   if(rel){
-    y = "AUC-max(AUC)"
+    y = bquote(AUC - max*(AUC))
   } else{
-    y= "AUC"
+    y = bquote(AUC)
   }
   p = ggplot(dataset,
          aes(y = median_auc, col = simul.data == "TCGA.KIRC", group = Methods, x = simul.data_disp_median))+
