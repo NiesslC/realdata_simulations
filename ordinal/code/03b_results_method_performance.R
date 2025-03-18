@@ -2,7 +2,6 @@
 library(dplyr)
 library(ggplot2); theme_set(theme_bw())
 library(gridExtra)
-library(latex2exp)
 library(reshape2)
 library(tidyr)
 library(stringr)

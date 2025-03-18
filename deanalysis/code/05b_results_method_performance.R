@@ -2,7 +2,6 @@
 library(dplyr)
 library(reshape2)
 library(ggplot2); theme_set(theme_bw())
-library(latex2exp)
 library(stringr)
 
 # 1) PREPARATIONS ----------------------------------------------------------------------------------
