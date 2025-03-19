@@ -175,37 +175,10 @@ ggplot(performdat %>% filter(ground_truth== "diff_probs"),# %>% filter(nsample =
 
 
 # 3) PLOTS FOR PUBLICATION -------------------------------------------------------------------------
-
 cols = c("Researcher-specified" = "#00CDCD", "Real-data-based" = "#DDA0DD") ##7AC5CD") # "#FFB90F", c("#00CDCD", "#FFFFFF", "#FFFFFF")
-performdat = performdat %>% mutate(method_label = factor(method_label,
-                                            levels = c("chisq", "fisher",
-                                                       "lrm", "wilcox"),
-                                            labels = c("Chi-square test", 
-                                                       "Fisher's exact test", 
-                                                       "Wilcoxon\nrank-sum test",
-                                                       "PO ordinal\nlogistic regression")),
-                      source = factor(source,
-                                      levels = c("user","nejm"),
-                                      labels = c("Researcher-specified",
-                                                 "Real-data-based")),
-                      nsample = factor(nsample, 
-                                       levels = c("60", "120", "200", "300", "600"),
-                                       labels = paste0("italic(n) == ", c("60", "120", "200", "300", "600"))))
-                        
 
 # A) Dataset characteristics
-###alternative option: instead of creating param_char_long first and then param_examples and param_char for the two plots,
-###create param_examples and param_char directly --> remove lines 199-207 and use lines with ### (line 208 instead of line 207 + lines 222-228 instead of line 221)
-param_char_long = bind_rows(param_user_long, param_nejm_long) %>% 
-  mutate(source = factor(
-    case_when(journal %in% c("NEJM", "New England Journal of Medicine") ~ "nejm",
-              is.na(journal) ~ "user"), 
-    levels = c("user","nejm"),
-    labels = c("Researcher-specified", "Real-data-based"))) %>%  
-  select(!(publication_year:outcome_type_cat))
-
-param_examples = param_char_long %>% filter(settingname %in% c("tao2022", "k7_id2"))
-###param_examples = bind_rows(param_user_long, param_nejm_long) %>% filter(settingname %in% c("tao2022", "k7_id2")) %>% ungroup()
+param_examples = bind_rows(param_user_long, param_nejm_long) %>% filter(settingname %in% c("tao2022", "k7_id2"))
 p_bsp = ggplot(data = param_examples, aes(x = h, y = prob))+
   geom_bar(stat = "identity", position = "dodge", aes(fill = group), col  = "grey60")+
   facet_wrap(~settingname, nrow = 1)+
@@ -218,23 +191,20 @@ p_bsp = ggplot(data = param_examples, aes(x = h, y = prob))+
   theme(legend.position = "top")
 ggsave(file = "./ordinal/results/plots/ordinal_bsp.eps", height = 3.5, width =6)
 
-param_char = param_char_long %>% select(settingname,source,rel_effect) %>% distinct()
-###param_char = bind_rows(param_user, param_nejm) %>% 
-###  mutate(source = factor(
-###    case_when(journal %in% c("NEJM", "New England Journal of Medicine") ~ "nejm",
-###              is.na(journal) ~ "user"), 
-###    levels = c("user","nejm"),
-###    labels = c("Researcher-specified", "Real-data-based"))) %>%  
-###  select(settingname,source,rel_effect)
+param_char = bind_rows(param_user, param_nejm) %>% 
+  mutate(source = factor(
+    case_when(journal %in% c("NEJM", "New England Journal of Medicine") ~ "nejm",
+              is.na(journal) ~ "user"), 
+    levels = c("user","nejm"),
+    labels = c("Researcher-specified", "Real-data-based"))) %>%  
+  select(settingname,source,rel_effect)
 p_char = ggplot(param_char, aes(x = source, y = abs(0.5-rel_effect), col = source))+
-  geom_point(position = position_jitter(seed = 33, width = 0.04))+
-  ##alternative option: only jitter the points for RDB --> use lines with ## (lines 231-234 instead of line 230; line 237 as well to correct x-axis order)
-  ##geom_point(subset(param_char, source == "Researcher-specified"))+ 
-  ##geom_point(subset(param_char, source == "Real-data-based"), 
-  ##           position = position_jitter(seed = 2, width = 0.04))+
+  geom_point(data = subset(param_char, source == "Researcher-specified"))+ 
+  geom_point(data = subset(param_char, source == "Real-data-based"), 
+             position = position_jitter(seed = 2, width = 0.04))+
   theme_bw()+
   scale_color_manual(values = cols, guide = "none")+
-  ##xlim("Researcher-specified", "Real-data-based")+
+  xlim("Researcher-specified", "Real-data-based")+
   labs(x = "Type of parameter specification", y = expression(group("|", italic(RE) - 0.5, "|")))#+
   #theme(text = element_text(size =17))
 # ggpubr::ggarrange(p_bsp, p_char,
@@ -245,13 +215,28 @@ ggsave(file = "./ordinal/results/plots/ordinal_characteristics.eps", height = 3.
 
 
 # B) Dataset characteristics vs absolute performance
+performdat = performdat %>% mutate(method_label = factor(method_label,
+                                                         levels = c("chisq", "fisher",
+                                                                    "lrm", "wilcox"),
+                                                         labels = c("Chi-square test", 
+                                                                    "Fisher's exact test", 
+                                                                    "Wilcoxon\nrank-sum test",
+                                                                    "PO ordinal\nlogistic regression")),
+                      source = factor(source,
+                                      levels = c("user","nejm"),
+                                      labels = c("Researcher-specified",
+                                                 "Real-data-based")),
+                      nsample = factor(nsample,
+                                       levels = c("60", "120", "200", "300", "600"),
+                                       labels = paste0("italic(n) == ", c("60", "120", "200", "300", "600"))))
+
 p_abs = ggplot(performdat %>% filter(ground_truth== "diff_probs"), 
        aes(x = abs(0.5-rel_effect), y = reject, col = source))+
   geom_point()+
   #  geom_line()+
   facet_grid(nsample~method_label, labeller = labeller(nsample = label_parsed, method_label = label_value))+
   scale_color_manual(values = cols)+
-  labs(col = "Type of parameter specification", x = expression(group("|", italic(RE) - 0.5, "|")),y = "Estimated power")+
+  labs(col = "Type of parameter specification", x = expression(group("|", italic(RE) - 0.5, "|")),y = bquote(Estimated~power))+
   theme(legend.position = "top",
         strip.background = element_rect(fill="grey90"),
         axis.text.x = element_text(size = 8.4),
@@ -267,7 +252,7 @@ p_rel = ggplot(rel_performdat %>% filter(ground_truth== "diff_probs"),
   geom_point()+
   facet_grid(nsample~method_label, labeller = labeller(nsample = label_parsed, method_label = label_value))+
   scale_color_manual(values = cols)+
-  labs(col = "Type of parameter specification", x = expression(group("|", italic(RE) - 0.5, "|")),y = bquote("Estimated"~"power" - max*("estimated"~"power")))+
+  labs(col = "Type of parameter specification", x = expression(group("|", italic(RE) - 0.5, "|")),y = expression(Estimated~power - max*"(estimated power)"))+
   theme(legend.position = "top",
         strip.background = element_rect(fill="grey90"),
         axis.text.x = element_text(size = 8.4),
