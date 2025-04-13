@@ -1,14 +1,16 @@
 library(curatedTCGAData)
-list_tcga = curatedTCGAData::curatedTCGAData(diseaseCode = "*", assays =  "RNASeq2Gene",
-                                             version = '2.0.1', dry.run = FALSE)
+list_tcga = curatedTCGAData::curatedTCGAData(diseaseCode = "*",
+                                             assays = "RNASeq2Gene",
+                                             version = '2.0.1',
+                                             dry.run = FALSE)
 tcga_datasets = vector("list", length = length(list_tcga))
-for(i in 1:length(list_tcga)){
+for (i in 1:length(list_tcga)) {
   tcga_datasets[[i]] = assay(experiments(list_tcga)[[i]])
 }
-rm(i) 
+rm(i)
 names(tcga_datasets) = names(list_tcga)
 # only use raw counts
-index = which(!grepl("Norm",names(list_tcga)))
+index = which(!grepl("Norm", names(list_tcga)))
 tcga_datasets = tcga_datasets[index]
 rm(index)
 rm(list_tcga)
@@ -24,7 +26,7 @@ save(tcga_datasets, file = "./deanalysis/data/tcga_datasets.RData")
 # Matrix products: default
 # 
 # locale:
-#   [1] LC_COLLATE=German_Germany.1252  LC_CTYPE=German_Germany.1252    LC_MONETARY=German_Germany.1252 LC_NUMERIC=C                   
+# [1] LC_COLLATE=German_Germany.1252  LC_CTYPE=German_Germany.1252    LC_MONETARY=German_Germany.1252 LC_NUMERIC=C                   
 # [5] LC_TIME=German_Germany.1252    
 # 
 # attached base packages:
@@ -36,7 +38,7 @@ save(tcga_datasets, file = "./deanalysis/data/tcga_datasets.RData")
 # [9] BiocGenerics_0.40.0         MatrixGenerics_1.6.0        matrixStats_0.61.0         
 # 
 # loaded via a namespace (and not attached):
-#   [1] Rcpp_1.0.7                    lattice_0.21-8                Biostrings_2.62.0             png_0.1-8                    
+# [1] Rcpp_1.0.7                    lattice_0.21-8                Biostrings_2.62.0             png_0.1-8                    
 # [5] digest_0.6.27                 utf8_1.2.1                    mime_0.12                     BiocFileCache_2.2.1          
 # [9] R6_2.5.1                      RSQLite_2.3.1                 evaluate_0.21                 httr_1.4.6                   
 # [13] pillar_1.9.0                  zlibbioc_1.40.0               rlang_1.1.1                   curl_4.3.1                   
@@ -52,4 +54,4 @@ save(tcga_datasets, file = "./deanalysis/data/tcga_datasets.RData")
 # [53] generics_0.1.3                vctrs_0.6.3                   tools_4.1.0                   bit64_4.0.5                  
 # [57] glue_1.4.2                    BiocVersion_3.14.0            fastmap_1.1.0                 yaml_2.2.1                   
 # [61] AnnotationDbi_1.56.2          ExperimentHub_2.2.1           BiocManager_1.30.16           memoise_2.0.1                
-# [65] knitr_1.37   
+# [65] knitr_1.37
