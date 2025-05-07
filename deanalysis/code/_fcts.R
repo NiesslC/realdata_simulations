@@ -170,7 +170,7 @@ GenerateSyntheticSimulation_new = function(working.dir,
                                            RO.prop = 5,
                                            random_sampling = FALSE,
                                            Large_sample = FALSE) {
-  dataset.parameters <- generateDatasetParameter_new(data.types)  # cniessl: add argument to generateDatasetParameter
+  dataset.parameters = generateDatasetParameter_new(data.types)  # cniessl: add argument to generateDatasetParameter()
   for (simul.data in data.types) {
     for (mode in modes) {
       for (disp.Type in disp.Types) {
@@ -352,22 +352,22 @@ SyntheticDataSimulation_new = function(simul.data,
       sample.disp1 = sapply(sample.mean1, FUN = getDisp,
                             mean.condition = mean.condition1,
                             disp.condition = disp.condition1,
-                            simplify = T, USE.NAMES = F)
+                            simplify = TRUE, USE.NAMES = FALSE)
       sample.disp2 = sapply(sample.mean2, FUN = getDisp,
                             mean.condition = mean.condition2,
                             disp.condition = disp.condition2,
-                            simplify = T, USE.NAMES = F)
+                            simplify = TRUE, USE.NAMES = FALSE)
     } else if (simul.data == "mKdB" || simul.data == "mBdK") {
       sample.disp1 = sapply(sub.sample.mean1[order(sub.sample.mean1)], FUN = getDisp,
                             mean.condition = mean.condition1,
                             disp.condition = disp.condition1,
-                            simplify = T, USE.NAMES = F)
-      sample.disp1 <- sample.disp1[order(order(sample.mean1))]
+                            simplify = TRUE, USE.NAMES = FALSE)
+      sample.disp1 = sample.disp1[order(order(sample.mean1))]
       sample.disp2 = sapply(sub.sample.mean2[order(sub.sample.mean2)], FUN = getDisp,
                             mean.condition = mean.condition2,
                             disp.condition = disp.condition2,
-                            simplify = T, USE.NAMES = F)
-      sample.disp2 <- sample.disp2[order(order(sample.mean2))]
+                            simplify = TRUE, USE.NAMES = FALSE)
+      sample.disp2 = sample.disp2[order(order(sample.mean2))]
     }
   } else if (dispType == "same") {
     if (grepl("TCGA|KIRC", simul.data) || simul.data == "Bottomly") {
@@ -410,7 +410,7 @@ SyntheticDataSimulation_new = function(simul.data,
     RO = matrix(runif(n.var * 2 * s, min = 0, max = 100),
                 nrow = n.var, ncol = 2 * s)
     index.outlier = which(RO < 3)
-    index.outlier <- index.outlier[c(
+    index.outlier = index.outlier[c(
       which(index.outlier > n.var * (round(s/3)) & index.outlier <= n.var * s),
       which(index.outlier > n.var * (s + round(s/3)) & index.outlier <= n.var * 2 * s)
     )]
@@ -426,10 +426,12 @@ SyntheticDataSimulation_new = function(simul.data,
       rand2 = rep(1, s)
     }
     for (i in 1:n.var) {
-      counts[i, 1:s] = sapply(rand1, FUN = function(x) 
-        rnbinom(1, 1/sample.disp2[i], mu = sample.mean2[i] * x))
-      counts[i, (s + 1):(2 * s)] = sapply(rand2, FUN = function(x) 
-        rnbinom(1, 1/sample.disp1[i], mu = sample.mean1[i] * x))
+      counts[i, 1:s] = sapply(rand1, FUN = function(x) {
+        rnbinom(1, 1/sample.disp2[i], mu = sample.mean2[i] * x)
+        })
+      counts[i, (s + 1):(2 * s)] = sapply(rand2, FUN = function(x) {
+        rnbinom(1, 1/sample.disp1[i], mu = sample.mean1[i] * x)
+        })
     }
   }
   if (mode == "R") {
@@ -509,7 +511,7 @@ performance_plot_new = function(working.dir,
                                "DE_", s, "spc_upFrac_", prop, "_rep_", i, "_", tools2,
                                ".rds", sep = "")
             }
-            result = try(readRDS(fileName), silent = T)
+            result = try(readRDS(fileName), silent = TRUE)
             if (class(result) == "try-error") {
               next
             }
@@ -656,8 +658,15 @@ performance_plot_new = function(working.dir,
 
 # Modifications fpc_performance_plot: 
 # - return data frame instead of plot (-> remove figure.dir argument)
-fpc_performance_plot_new = function(working.dir, simul.data, rep.start = 1,
-          rep.end, nsample, disp.Type, modes, AnalysisMethods, nvar) {
+fpc_performance_plot_new = function(working.dir,
+                                    simul.data,
+                                    rep.start = 1,
+                                    rep.end,
+                                    nsample,
+                                    disp.Type,
+                                    modes,
+                                    AnalysisMethods,
+                                    nvar) {
   if (length(simul.data) != 1) {
     stop("simul.data must have one element.")
   }
@@ -679,7 +688,7 @@ fpc_performance_plot_new = function(working.dir, simul.data, rep.start = 1,
           fileName = paste(working.dir, simul.data, "_",
                            test.cond, "_0DE_", s, "spc_rep_", i, "_",
                            tools2, ".rds", sep = "")
-          result = try(readRDS(fileName), silent = T)
+          result = try(readRDS(fileName), silent = TRUE)
           if (class(result) == "try-error") {
             next
           }

@@ -1,7 +1,7 @@
 library(curatedTCGAData)
 list_tcga = curatedTCGAData::curatedTCGAData(diseaseCode = "*",
                                              assays = "RNASeq2Gene",
-                                             version = '2.0.1',
+                                             version = "2.0.1",
                                              dry.run = FALSE)
 tcga_datasets = vector("list", length = length(list_tcga))
 for (i in 1:length(list_tcga)) {

@@ -9,7 +9,7 @@ source("./deanalysis/code/_fcts.R")
 
 # Get TCGA data set names (only those with >= 10 samples)
 load("./deanalysis/data/tcga_parameters.RData")
-nsample = purrr::map_depth(tcga_parameters, 1, "k_count") %>% purrr::map(. , ~ ncol(.) / 2)
+nsample = purrr::map_depth(tcga_parameters, 1, "k_count") %>% purrr::map(., ~ ncol(.) / 2)
 tcga_parameters = tcga_parameters[nsample >= 10]
 data.types.names = paste0("TCGA.", gsub("\\_.*", "", names(tcga_parameters)))
 rm(nsample, tcga_parameters)
@@ -28,9 +28,9 @@ param.fig2$AnalysisMethods_seed_yes = c("edgeR.ql", "edgeR.rb", "ROTS", "BaySeq"
 param.fig2$nsample = c(3, 10)
 param.fig2$nDE = c(500, 1000, 3000, 6000)
 param.fig2$fraction.upregulated = 0.5
-param.fig2$disp.Types = 'same'
-param.fig2$modes = c('D', 'R', 'OS')
-param.fig2$rowType = c('AUC', 'TPR', 'trueFDR')
+param.fig2$disp.Types = "same"
+param.fig2$modes = c("D", "R", "OS")
+param.fig2$rowType = c("AUC", "TPR", "trueFDR")
 #param.fig2$fixedfold = FALSE # Default; not explicitly specified in Baik et al. Code
 
 # Fig3 in Baik ----
@@ -45,15 +45,15 @@ param.fig3$AnalysisMethods_seed_yes = c("edgeR.ql", "edgeR.rb", "ROTS", "BaySeq"
 param.fig3$nsample = c(3, 10)
 param.fig3$nDE = 0
 param.fig3$fraction.upregulated = 0.5
-param.fig3$disp.Types = 'same'
-param.fig3$modes = c('D', 'R', 'OS')
+param.fig3$disp.Types = "same"
+param.fig3$modes = c("D", "R", "OS")
 #param.fig3$fixedfold = FALSE # Default; not explicitly specified in Baik et al. Code
-param.fig3$fpc = TRUE # in runSimulationAnalysis Docu: "[...]  Only used for real data analysis." -> However, this is not real data analysis but simulation with DE 0
+param.fig3$fpc = TRUE  # in runSimulationAnalysis() documentation: "[...] Only used for real data analysis." -> However, this is not real data analysis but simulation with DE 0
 
 
-dataset.dir = './deanalysis/data/' #
-analysis.dir = './deanalysis/results/rdata/'
-figure.dir = './deanalysis/results/plots/'
+dataset.dir = "./deanalysis/data/"
+analysis.dir = "./deanalysis/results/rdata/"
+figure.dir = "./deanalysis/results/plots/"
 
 # Generate simulated datasets ----------------------------------------------------------------------
 
@@ -69,7 +69,7 @@ for (i in 1:length(data.types.names)) {
                                   fraction.upregulated = param.fig2$fraction.upregulated,
                                   disp.Types = param.fig2$disp.Types,
                                   modes = param.fig2$modes)
-  }
+}
 rm(i)
 
 # Generate data according to Figure 3 in Baik et al. for all TCGA data sets
@@ -84,7 +84,7 @@ for (i in 1:length(data.types.names)) {
                                   fraction.upregulated = param.fig3$fraction.upregulated,
                                   disp.Types = param.fig3$disp.Types,
                                   modes = param.fig3$modes)
-  }
+}
 rm(i)
 
 # Generate estimates datasets ------------------------------------------------------------

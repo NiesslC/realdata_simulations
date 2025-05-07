@@ -47,7 +47,7 @@ table(performdat$settingname, performdat$ground_truth) #,performdat$method, perf
 performdat = performdat %>% mutate(settingname = as.factor(settingname)) %>% filter(n_rep_narm > 8000)
 table(performdat$settingname, performdat$ground_truth)
 
-performdat %>% 
+performdat %>%
   filter(ground_truth == "diff_probs") %>%
   select(settingname, n_rep_narm, nsample) %>%
   distinct() %>%
@@ -168,9 +168,9 @@ ggplot(performdat %>% filter(ground_truth == "diff_probs"),
   facet_wrap(~ nsample + method_label, ncol = 4)
 
 # KL -----------------------------------------------------------------------------------------------
-ggplot(performdat %>% 
+ggplot(performdat %>%
          filter(ground_truth == "diff_probs") %>%
-         select(kl1, settingname, source) %>% 
+         select(kl1, settingname, source) %>%
          distinct(),
        aes(x = kl1, fill = source)) +
   geom_histogram() +
@@ -204,7 +204,7 @@ p_bsp = ggplot(data = param_examples, aes(x = h, y = prob)) +
   scale_fill_manual(values = c("#E5E5E5", "#A6A6A6"), labels = c("1", "2")) +
   geom_text(data = param_examples %>% select(settingname, rel_effect) %>% distinct(),
             x = 2.5, y = 0.5, aes(label = paste0("Relative effect = ",
-                                                 sprintf('%.2f', round(rel_effect, 2))))) +
+                                                 sprintf("%.2f", round(rel_effect, 2))))) +
   theme_bw() +
   theme(legend.position = "top")
 ggsave(file = "./ordinal/results/plots/ordinal_bsp.eps", height = 3.5, width = 6)

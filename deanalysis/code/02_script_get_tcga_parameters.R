@@ -41,9 +41,9 @@ save(tcga_parameters, file = "./deanalysis/data/tcga_parameters.RData")
 names(tcga_parameters) = word(names(tcga_parameters), 1, sep = "\\_")
 
 ## Get information on number of samples and genes ----------------------------------------------------
-nsample = purrr::map_depth(tcga_parameters, 1, "k_count") %>% purrr::map(. , ~ ncol(.) / 2)
-ngene = purrr::map_depth(tcga_parameters, 1, "k_count") %>% purrr::map(. , ~nrow(.))
-nfilter = purrr::map_depth(tcga_parameters, 1, "k_index.filter") %>% purrr::map(. , ~length(.))
+nsample = purrr::map_depth(tcga_parameters, 1, "k_count") %>% purrr::map(., ~ ncol(.) / 2)
+ngene = purrr::map_depth(tcga_parameters, 1, "k_count") %>% purrr::map(., ~nrow(.))
+nfilter = purrr::map_depth(tcga_parameters, 1, "k_index.filter") %>% purrr::map(., ~length(.))
 data_info = data.frame(nsample = as_vector(nsample),
                        ngene = as_vector(ngene),
                        nfilter = as_vector(nfilter))

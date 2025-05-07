@@ -58,7 +58,7 @@ rm(kmax)
 param_user = param_user %>% mutate(k = (rowSums(!is.na(param_user))) / 2)
 
 # add setting specific identifier
-param_user = param_user %>% 
+param_user = param_user %>%
   group_by(k) %>%
   mutate(id = row_number()) %>%
   ungroup() %>%
@@ -121,7 +121,7 @@ param_nejm = param_nejm %>% mutate_at(vars(starts_with("group2_h")), ~ . / sum2)
 stopifnot(all(
   param_nejm %>%
     mutate(sum1 = rowSums(across(starts_with("group1_h")), na.rm = TRUE)) %>%
-    .$sum1 %>% 
+    .$sum1 %>%
     map_lgl(~all.equal(., 1))
   ))
 stopifnot(all(

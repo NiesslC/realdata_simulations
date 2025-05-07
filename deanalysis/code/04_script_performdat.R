@@ -6,7 +6,7 @@ source("./deanalysis/code/_fcts.R")
 
 # Get TCGA data set names (only those with >= 10 samples) ------------------------------------------
 load("./deanalysis/data/tcga_parameters.RData")
-nsample = purrr::map_depth(tcga_parameters, 1, "k_count") %>% purrr::map(. , ~ ncol(.) / 2)
+nsample = purrr::map_depth(tcga_parameters, 1, "k_count") %>% purrr::map(., ~ ncol(.) / 2)
 tcga_parameters = tcga_parameters[nsample >= 10]
 data.types.names = paste0("TCGA.", gsub("\\_.*", "", names(tcga_parameters)))
 rm(nsample, tcga_parameters)
@@ -17,29 +17,29 @@ rm(nsample, tcga_parameters)
 param.fig2 = list()
 param.fig2$nvar = 10000
 param.fig2$rep.end = 50
-param.fig2$AnalysisMethods = c('edgeR', 'edgeR.ql', 'edgeR.rb', 'DESeq.pc', 'DESeq2',
-                               'voom.tmm', 'voom.qn', 'voom.sw', 'ROTS', 'BaySeq',
-                               'PoissonSeq', 'SAMseq')
+param.fig2$AnalysisMethods = c("edgeR", "edgeR.ql", "edgeR.rb", "DESeq.pc", "DESeq2",
+                               "voom.tmm", "voom.qn", "voom.sw", "ROTS", "BaySeq",
+                               "PoissonSeq", "SAMseq")
 param.fig2$nsample = c(3, 10)
 param.fig2$nDE = c(500, 1000, 3000, 6000)
 param.fig2$fraction.upregulated = 0.5
-param.fig2$disp.Types = 'same'
-param.fig2$modes = c('D', 'R', 'OS')
-param.fig2$rowType = c('AUC', 'TPR', 'trueFDR')
-param.fig2$fixedfold = FALSE
+param.fig2$disp.Types = "same"
+param.fig2$modes = c("D", "R", "OS")
+param.fig2$rowType = c("AUC", "TPR", "trueFDR")
+#param.fig2$fixedfold = FALSE
 
-analysis.dir = './deanalysis/results/rdata/'
+analysis.dir = "./deanalysis/results/rdata/"
 
 ## Fig3 in Baik ----
 param.fig3 = list()
 param.fig3$nvar = 10000
 param.fig3$rep.end = 50
-param.fig3$AnalysisMethods = c('edgeR', 'edgeR.ql', 'edgeR.rb', 'DESeq.pc', 'DESeq2',
-                               'voom.tmm', 'voom.qn', 'voom.sw', 'ROTS', 'BaySeq',
-                               'PoissonSeq', 'SAMseq')
+param.fig3$AnalysisMethods = c("edgeR", "edgeR.ql", "edgeR.rb", "DESeq.pc", "DESeq2",
+                               "voom.tmm", "voom.qn", "voom.sw", "ROTS", "BaySeq",
+                               "PoissonSeq", "SAMseq")
 param.fig3$nsample = c(3, 10)
-param.fig3$disp.Types = 'same'
-param.fig3$modes = c('D', 'R', 'OS')
+param.fig3$disp.Types = "same"
+param.fig3$modes = c("D", "R", "OS")
 
 
 # Generate performance measures datasets -----------------------------------------------------------

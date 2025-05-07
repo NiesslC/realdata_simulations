@@ -35,7 +35,7 @@ mean_disp_info = full_join(
     summarise(simul.data_mean_median = median(mean)) %>%
     dplyr::rename(simul.data = dataset, simul.data_nsample = nsample),
   by = c("simul.data", "simul.data_nsample")
-  ) %>% 
+  ) %>%
   ungroup()
 
 performdat_degenes = full_join(performdat_degenes, mean_disp_info, by = "simul.data")
@@ -213,7 +213,7 @@ topranking = topranking %>%
   ungroup() %>%
   select(Methods, topmethod, simul.data, nSample, mode, nDE)
 ggplot(topranking, aes(y = Methods, x = simul.data, fill = topmethod)) +
-  geom_tile(color = 'black') +
+  geom_tile(color = "black") +
   scale_fill_manual(values = c(`FALSE` = "gray90", `TRUE` = "mediumseagreen")) +
   #coord_fixed() +
   scale_x_discrete(expand = expansion(0)) +

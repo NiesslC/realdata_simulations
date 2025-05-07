@@ -54,7 +54,8 @@ run_methods_fct = function(x, y) {
     method_warnings = "no warnings"
   } else {
     method_warnings = discard(method_warnings, function(x) length(x) == 0)
-    method_warnings = paste(paste(names(method_warnings), method_warnings, sep = ":"), collapse = ", ")
+    method_warnings = paste(paste(names(method_warnings), method_warnings, sep = ":"),
+                            collapse = ", ")
   }
   
   estimdat = data.frame(p_wilcox = res_wilcox$result, p_fisher = res_fisher$result,
@@ -78,8 +79,8 @@ generate_simuldat_fct = function(probs1, probs2, nsample, k) {
   
   # ordinal outcome in each group
   y = vector("numeric", length = nsample)
-  y[x == 1] <- sample(1:k, nsample/2, replace = TRUE, prob = probs1)
-  y[x == 2] <- sample(1:k, nsample/2, replace = TRUE, prob = probs2)
+  y[x == 1] = sample(1:k, nsample/2, replace = TRUE, prob = probs1)
+  y[x == 2] = sample(1:k, nsample/2, replace = TRUE, prob = probs2)
   
   return(list("x" = x, "y" = y))
 }
@@ -110,7 +111,7 @@ generate_simuldat_estimdat_statesdat_fct = function(nrep,
   statesdat_list = vector("list", nrep + 1)
   simuldata_list = vector("list", nrep)
   # prepare parameters and estimates dataset
-  estimdat = as.data.frame(matrix(data = NA, nrow = nrep, ncol = 4 + 1)) #4 methods
+  estimdat = as.data.frame(matrix(data = NA, nrow = nrep, ncol = 4 + 1))  # 4 methods
   colnames(estimdat) = c("p_wilcox", "p_fisher", "p_chisq", "p_lrm", "warnings")
   
   settingname = setting$settingname
@@ -162,7 +163,7 @@ generate_simuldat_estimdat_statesdat_fct = function(nrep,
   return(estimdat)
 }
 
-  
+
 # FUNCTION rel_effect_fct
 # = function that calculates the relative effect (i.e. the probability that observations in one group 
 #   tend to be larger) for two probability vectors, based on Funatogawaa and Funatogawa 2023/ Munzel and Hauschke 2003
@@ -184,6 +185,8 @@ rel_effect_fct = function(prob1, prob2) {
   theta = sum(theta)
   return(theta)
 }
+
+
 # FUNCTION asymp_var_fct
 # = function that calculates the asymptotic variance for two probability vectors, based on Funatogawaa
 #   and Funatogawa 2023/ Munzel and Hauschke 2003
