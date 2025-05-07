@@ -88,45 +88,6 @@ ggplot(performdat %>% filter(ground_truth == "diff_probs"), #%>% filter(nsample 
   geom_point() +
   facet_wrap(~ nsample + method_label, ncol = 4)
 
-# OR -----------------------------------------------------------------------------------------------
-ggplot(melt(param_user,
-            measure.vars = colnames(param_user)[grepl("oddsratio", colnames(param_user))]) %>%
-         filter(!is.na(value)),
-       aes(x = variable, y = value, col = settingname, group = settingname)) +
-  geom_point() +
-  geom_line()
-ggplot(melt(param_nejm,
-            measure.vars = colnames(param_user)[grepl("oddsratio", colnames(param_user))]) %>%
-         filter(!is.na(value)),
-       aes(x = variable, y = value, col = settingname, group = settingname)) +
-  geom_point() +
-  geom_line()
-
-ggplot(performdat %>%
-         filter(ground_truth == "diff_probs") %>%
-         select(mean_or, settingname, source) %>%
-         distinct(),
-       aes(y = mean_or, x = source)) +
-  geom_boxplot()
-ggplot(performdat %>%
-         filter(ground_truth == "diff_probs") %>%
-         select(maxdiff_or, settingname, source) %>%
-         distinct(),
-       aes(y = maxdiff_or, x = source)) +
-  geom_boxplot()
-
-
-ggplot(performdat %>% filter(ground_truth == "diff_probs"), #%>% filter(nsample == 60),
-       aes(x = maxdiff_or, y = reject, shape = source, col = method_label)) +
-  geom_point() +
-  facet_wrap(~ nsample + method_label, ncol = 4)
-ggplot(performdat %>% filter(ground_truth == "diff_probs"), #%>% filter(nsample == 60),
-       #aes(x = mean_or, y = reject, shape = source, col = method_label)) +
-       aes(x = mean_or, y = reject, col = source)) +
-  geom_point() +
-  facet_wrap(~ nsample + method_label, ncol = 4) +
-  geom_vline(xintercept = 1, linetype = "dashed")
-
 # Relative effect ---------------------------------------------------------------------------------
 ggplot(performdat %>%
          filter(ground_truth == "diff_probs") %>%
@@ -146,50 +107,6 @@ ggplot(performdat %>% filter(ground_truth == "diff_probs"), #%>% filter(nsample 
   geom_point() +
   #geom_line() +
   facet_grid(nsample ~ method_label)
-
-# Asymptotic variance ------------------------------------------------------------------------------
-ggplot(performdat %>% select(asymp_var1, settingname, source) %>% distinct(),
-       aes(x = asymp_var1, fill = source)) +
-  geom_histogram() +
-  facet_wrap(~source, ncol = 1)
-ggplot(performdat %>% select(asymp_var2, settingname, source) %>% distinct(),
-       aes(x = asymp_var2, fill = source)) +
-  geom_histogram() +
-  facet_wrap(~source, ncol = 1)
-
-ggplot(performdat %>% filter(ground_truth == "diff_probs"),
-       aes(x = asymp_var1, y = reject, shape = source, col = method_label)) +
-  geom_point() +
-  facet_wrap(~ nsample + method_label, ncol = 4)
-
-ggplot(performdat %>% filter(ground_truth == "diff_probs"),
-       aes(x = asymp_var2, y = reject, shape = source, col = method_label)) +
-  geom_point() +
-  facet_wrap(~ nsample + method_label, ncol = 4)
-
-# KL -----------------------------------------------------------------------------------------------
-ggplot(performdat %>%
-         filter(ground_truth == "diff_probs") %>%
-         select(kl1, settingname, source) %>%
-         distinct(),
-       aes(x = kl1, fill = source)) +
-  geom_histogram() +
-  facet_wrap(~source, ncol = 1)
-ggplot(performdat %>%
-         filter(ground_truth == "diff_probs") %>%
-         select(kl2, settingname, source) %>%
-         distinct(),
-       aes(x = kl2, fill = source)) +
-  geom_histogram() +
-  facet_wrap(~source, ncol = 1)
-ggplot(performdat %>% filter(ground_truth == "diff_probs"), #%>% filter(nsample == 60),
-       aes(x = kl1, y = reject, shape = source, col = method_label)) +
-  geom_point() +
-  facet_wrap(~ nsample + method_label, ncol = 4)
-ggplot(performdat %>% filter(ground_truth == "diff_probs"), #%>% filter(nsample == 60),
-       aes(x = kl2, y = reject, shape = source, col = method_label)) +
-  geom_point() +
-  facet_wrap(~ nsample + method_label, ncol = 4)
 
 # 3) PLOTS FOR PUBLICATION -------------------------------------------------------------------------
 cols = c("Researcher-specified" = "#00CDCD", "Real-data-based" = "#DDA0DD") ##7AC5CD") # "#FFB90F", c("#00CDCD", "#FFFFFF", "#FFFFFF")
