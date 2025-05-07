@@ -225,53 +225,6 @@ ggplot(topranking, aes(y = Methods, x = simul.data, fill = topmethod)) +
            alpha = .1, col = "red")
 
 
-# Try to reproduce results of Table 2 in Baik et al. ----
-# kirc_degenes = melt(performdat_degenes_median %>% filter(simul.data == "TCGA.KIRC"),
-#                     measure.vars = c("median_auc", "median_tpr", "median_truefdr"),
-#                     variable.name = "performance_measure",
-#                     value.name = "performance_value")
-
-kirc_degenes = performdat_degenes_median %>%
-  filter(simul.data == "TCGA.KIRC" & nDE != "pDE = 10%") %>%
-  group_by(nSample, mode, nDE) %>%
-  #mutate(relbestauc = 1-(median_auc/max(median_auc))) %>%
-  mutate(diffbestauc = max(median_auc) - median_auc,
-         diffbesttpr = max(median_tpr) - median_tpr,
-         rank_tpr = rank(-median_tpr, ties.method = "first"),
-         rank_fdr = rank(median_truefdr, ties.method = "first")) %>%
-  rowwise() %>%
-  mutate(mean_rank = mean(c(rank_tpr, rank_fdr), na.rm = TRUE)) %>%
-  ungroup() %>%
-  #filter(diffbestauc < 0.03) %>% # & (rank_tpr <= 4 | rank_fdr <= 4) )
-  filter(diffbestauc == 0 | (diffbestauc < 0.03 & rank_tpr <= 5)) %>% #| (diffbestauc < 0.03 & median_truefdr > 0.25)) %>% # & (rank_tpr <= 4 | rank_fdr <= 4) )
-  mutate(nDE_baiktable = case_when(
-    nDE %in% c("pDE = 30%", "pDE = 60%") ~ "pDE >= 30%",
-    .default = nDE
-    )) %>%
-  group_by(Methods, nSample, mode, nDE_baiktable) %>%
-  count() %>%
-  filter(nDE_baiktable == "pDE = 5%" | n > 1)
-
-
-kirc_degenes %>%
-  group_by(nSample, mode, nDE_baiktable) %>%
-  select(nSample, mode, nDE_baiktable, Methods) %>%
-  distinct() %>%
-  arrange(mode, nSample) %>%
-  mutate(methods = paste(unique(Methods), collapse = ",")) %>%
-  select(-Methods) %>%
-  distinct()
-
-
-kirc_degenes %>%
-  filter(nSample == 3 & mode == "D" & nDE %in% c("pDE = 30%", "pDE = 60%")) %>%
-  ggplot(aes(x = Methods, y = performance_value, col = Methods)) +
-  geom_point() +
-  facet_wrap(~performance_measure, scale = "free") +
-  theme(legend.position = "bottom",
-        axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
-
-
 # 3) PLOTS FOR PUBLICATION -------------------------------------------------------------------------
 
 cols = c("#DDA0DD", "#00CDCD") ##7AC5CD") # "#FFB90F", c("#00CDCD", "#FFFFFF", "#FFFFFF")
