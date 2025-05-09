@@ -44,7 +44,9 @@ ggplot(performdat %>% filter(method == "p_wilcox_reject"),  # only for one metho
        aes(x = n_rep_narm)) +
   geom_histogram()
 table(performdat$settingname, performdat$ground_truth) #,performdat$method, performdat$nsample)
-performdat = performdat %>% mutate(settingname = as.factor(settingname)) %>% filter(n_rep_narm > 8000)
+
+# Remove DGMs/settings for which the number of repetitions without NAs is lower than 8,000
+performdat = performdat %>% mutate(settingname = as.factor(settingname)) %>% filter(n_rep_narm >= 8000)
 table(performdat$settingname, performdat$ground_truth)
 
 performdat %>%
