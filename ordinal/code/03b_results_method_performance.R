@@ -206,3 +206,27 @@ ggpubr::ggarrange(p_abs, p_rel,
                   labels = c("a", "b"),
                   font.label = list(size = 13))
 ggsave(file = "./ordinal/results/plots/ordinal_results.eps", height = 9, width = 6.5)
+
+
+## Considered ordinal outcome probabilities (pi_1, pi_2) (Tables S1-S2) ----------------------------
+### Researcher-specified pairs of outcome probabilities (Table S1) ---------------------------------
+param_user %>%
+  select(settingname, group1_h1:group2_h7) %>%
+  rename_with(~ str_replace_all(., c("^group" = "pi", "h" = ""))) %>%
+  mutate(across(where(is.numeric), ~ sprintf("%.2f", .)))
+
+### Real-data-based pairs of outcome probabilities and additional information (Table S2) -----------
+param_nejm %>%
+  mutate(measure = factor(if_else(str_detect(outcome, "Rankin"), "mRS", "Other"))) %>%
+  select(settingname, measure, group1_n, group2_n, group1_h1:group1_h7, group2_h1:group2_h7) %>%
+  dplyr::rename(n1 = group1_n, n2 = group2_n) %>%
+  rename_with(~ str_replace_all(., c("^group" = "pi", "h" = ""))) %>%
+  arrange(settingname) %>%
+  mutate(across(where(is.numeric), ~ round(., 2)))
+
+# Confirm that the seven values rounded to 0 in one of the datasets are indeed > 0
+param_nejm %>%
+  filter(settingname == "perkins2018") %>%
+  select(settingname, group1_h1:group1_h7, group2_h1:group2_h7) %>%
+  rename_with(~ str_replace_all(., c("^group" = "pi", "h" = ""))) %>%
+  mutate(across(where(is.numeric), ~ ifelse(round(., 2) == 0, round(., 4), round(., 2))))

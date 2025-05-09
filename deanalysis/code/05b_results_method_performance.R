@@ -374,6 +374,18 @@ plotres = function(dataset, rel) {
           strip.background = element_rect(fill = "grey90"))
   return(p)
 }
+## Study abbreviation, study name, and number of samples for the 14 TCGA datasets (Table S3) -------
+# Load TCGA disease code table from TCGAutils package (for study/cancer names)
+data("diseaseCodes", package = "TCGAutils")
+
+# Combine with parameter meta data to create Table S3
+diseaseCodes %>%
+  right_join(mean.total_all, by = join_by(Study.Abbreviation == dataset)) %>%
+  select(Study.Abbreviation, Study.Name, nsample) %>%
+  distinct() %>%
+  mutate(Study.Name = str_to_sentence(Study.Name),
+         total_n = 2 * nsample,  # nsample is the number of paired samples
+         .keep = "unused")
 plotres(performdat_degenes_median %>% filter(grepl("edgeR|DESe", Methods)),
         rel = FALSE)
 ggsave(file = "./deanalysis/results/plots/deanalysis_results_supp_a.eps",
