@@ -239,30 +239,6 @@ performdat_degenes_median = performdat_degenes_median %>%
                       labels = c("italic(p)[DE] == 0.05", "italic(p)[DE] == 0.10",
                                  "italic(p)[DE] == 0.30", "italic(p)[DE] == 0.60")))
 
-performdat_degenes_diff = performdat_degenes %>%
-  group_by(Repeat, simul.data, simul.data_mean_median, simul.data_disp_median,
-           nSample, mode, nDE) %>%
-  mutate(diff_auc = AUC - max(AUC)) %>%
-  ungroup()
-performdat_degenes_diff = performdat_degenes_diff %>%
-  group_by(Methods, simul.data, simul.data_mean_median, simul.data_disp_median,
-           nSample, mode, nDE) %>%
-  summarise(diff_median_auc = median(diff_auc),
-            diff_min_auc = min(diff_auc),
-            diff_max_auc = max(diff_auc)) %>%
-  filter(mode == "D") %>%
-  mutate(nSample = factor(nSample, levels = c("3", "10"),
-                          labels = paste0("italic(n) == ", c("6", "20"))),
-         nDE = factor(nDE, levels = c("pDE = 5%", "pDE = 10%", "pDE = 30%", "pDE = 60%"),
-                      labels = c("italic(p)[DE] == 0.05", "italic(p)[DE] == 0.10",
-                                 "italic(p)[DE] == 0.30", "italic(p)[DE] == 0.60")))
-
-performdat_degenes_median_subset = performdat_degenes_median %>%
-  filter(nDE %in% c("italic(p)[DE] == 0.05", "italic(p)[DE] == 0.30") &
-           !(Methods %in% c("BaySeq", "voom.tmm", "voom.qn", "voom.sw")))
-performdat_degenes_diff_subset = performdat_degenes_diff %>%
-  filter(nDE %in% c("italic(p)[DE] == 0.05", "italic(p)[DE] == 0.30") &
-           !(Methods %in% c("BaySeq", "voom.tmm", "voom.qn", "voom.sw")))
 # A) Dataset characteristics
 ggplot(performdat_degenes_median %>%
          ungroup() %>%
@@ -286,6 +262,9 @@ ggsave(file = "./deanalysis/results/plots/deanalysis_characteristics.eps",
 
 
 # B) Dataset characteristics vs absolute performance
+performdat_degenes_median_subset = performdat_degenes_median %>%
+  filter(nDE %in% c("italic(p)[DE] == 0.05", "italic(p)[DE] == 0.30") &
+           !(Methods %in% c("BaySeq", "voom.tmm", "voom.qn", "voom.sw")))
 
 # separate geom_point for better visibilty of KIRC
 p_abs = ggplot(performdat_degenes_median_subset,
@@ -312,6 +291,28 @@ p_abs = ggplot(performdat_degenes_median_subset,
 
 
 # C) relative performance
+performdat_degenes_diff = performdat_degenes %>%
+  group_by(Repeat, simul.data, simul.data_mean_median, simul.data_disp_median,
+           nSample, mode, nDE) %>%
+  mutate(diff_auc = AUC - max(AUC)) %>%
+  ungroup()
+performdat_degenes_diff = performdat_degenes_diff %>%
+  group_by(Methods, simul.data, simul.data_mean_median, simul.data_disp_median,
+           nSample, mode, nDE) %>%
+  summarise(diff_median_auc = median(diff_auc),
+            diff_min_auc = min(diff_auc),
+            diff_max_auc = max(diff_auc)) %>%
+  filter(mode == "D") %>%
+  mutate(nSample = factor(nSample, levels = c("3", "10"),
+                          labels = paste0("italic(n) == ", c("6", "20"))),
+         nDE = factor(nDE, levels = c("pDE = 5%", "pDE = 10%", "pDE = 30%", "pDE = 60%"),
+                      labels = c("italic(p)[DE] == 0.05", "italic(p)[DE] == 0.10",
+                                 "italic(p)[DE] == 0.30", "italic(p)[DE] == 0.60")))
+
+performdat_degenes_diff_subset = performdat_degenes_diff %>%
+  filter(nDE %in% c("italic(p)[DE] == 0.05", "italic(p)[DE] == 0.30") &
+           !(Methods %in% c("BaySeq", "voom.tmm", "voom.qn", "voom.sw")))
+
 p_rel = ggplot(performdat_degenes_diff_subset,
                aes(y = diff_median_auc, col = simul.data == "TCGA.KIRC", group = Methods,
                    x = simul.data_disp_median)) +
