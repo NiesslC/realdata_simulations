@@ -760,3 +760,34 @@ fpc_performance_plot_new = function(working.dir,
   #        width = 10, height = 8)
   # dev.off()
 }
+# Function to generate paper plots
+# separate geom_errorbar and geom_point for better visibility of KIRC
+plotres = function(dataset, rel) {
+  if (rel) {
+    y = bquote(AUC - max * (AUC))
+  } else {
+    y = bquote(AUC)
+  }
+  p = ggplot(dataset,
+             aes(y = median_auc, col = simul.data == "TCGA.KIRC", group = Methods,
+                 x = simul.data_disp_median)) +
+    geom_errorbar(data = dataset %>% filter(simul.data != "TCGA.KIRC"),
+                  aes(ymin = min_auc, ymax = max_auc)) +
+    geom_point(data = dataset %>% filter(simul.data != "TCGA.KIRC")) +
+    geom_errorbar(data = dataset %>% filter(simul.data == "TCGA.KIRC"),
+                  aes(ymin = min_auc, ymax = max_auc),
+                  width = 0,
+                  linewidth = 1) +
+    geom_point(data = dataset %>% filter(simul.data == "TCGA.KIRC"),
+               size = 2) +
+    scale_color_manual(values = rev(cols),
+                       breaks = c(TRUE, FALSE),
+                       labels = c("TCGA dataset used \nby Baik et al. (2020)",
+                                  "Other 13 selected \nTCGA datasets")) +
+    facet_grid(nDE + nSample ~ Methods, labeller = label_parsed) +
+    theme_bw() +
+    labs(y = y, col = "Dataset selection", x = "Median dispersion") +
+    theme(legend.position = "top",
+          strip.background = element_rect(fill = "grey90"))
+  return(p)
+}

@@ -4,6 +4,8 @@ library(reshape2)
 library(ggplot2); theme_set(theme_bw())
 library(stringr)
 
+source("./deanalysis/code/_fcts.R")
+
 # 1) PREPARATIONS ----------------------------------------------------------------------------------
 # Get TCGA parameter meta data ---------------------------------------------------------------------
 load("./deanalysis/data/tcga_parameters_metadata.RData")
@@ -266,28 +268,7 @@ performdat_degenes_median_subset = performdat_degenes_median %>%
   filter(nDE %in% c("italic(p)[DE] == 0.05", "italic(p)[DE] == 0.30") &
            !(Methods %in% c("BaySeq", "voom.tmm", "voom.qn", "voom.sw")))
 
-# separate geom_point for better visibilty of KIRC
-p_abs = ggplot(performdat_degenes_median_subset,
-               aes(y = median_auc, col = simul.data == "TCGA.KIRC", group = Methods,
-                   x = simul.data_disp_median)) +
-  geom_errorbar(data = performdat_degenes_median_subset %>% filter(simul.data != "TCGA.KIRC"),
-                aes(ymin = min_auc, ymax = max_auc)) +
-  geom_point(data = performdat_degenes_median_subset %>% filter(simul.data != "TCGA.KIRC")) +
-  geom_errorbar(data = performdat_degenes_median_subset %>% filter(simul.data == "TCGA.KIRC"),
-                aes(ymin = min_auc, ymax = max_auc),
-                width = 0,
-                linewidth = 1) +
-  geom_point(data = performdat_degenes_median_subset %>% filter(simul.data == "TCGA.KIRC"),
-             size = 2) +
-  scale_color_manual(values = rev(cols),
-                     breaks = c(TRUE, FALSE),
-                     labels = c("TCGA dataset used \nby Baik et al. (2020)",
-                                "Other 13 selected \nTCGA datasets")) +
-  facet_grid(nDE + nSample ~ Methods, labeller = label_parsed) +
-  theme_bw() +
-  labs(y = bquote(AUC), col = "Dataset selection", x = "Median dispersion") +
-  theme(legend.position = "top",
-        strip.background = element_rect(fill = "grey90"))
+p_abs = plotres(dataset = performdat_degenes_median_subset, rel = FALSE)
 
 
 # C) relative performance
@@ -313,28 +294,10 @@ performdat_degenes_diff_subset = performdat_degenes_diff %>%
   filter(nDE %in% c("italic(p)[DE] == 0.05", "italic(p)[DE] == 0.30") &
            !(Methods %in% c("BaySeq", "voom.tmm", "voom.qn", "voom.sw")))
 
-p_rel = ggplot(performdat_degenes_diff_subset,
-               aes(y = diff_median_auc, col = simul.data == "TCGA.KIRC", group = Methods,
-                   x = simul.data_disp_median)) +
-  geom_errorbar(data = performdat_degenes_diff_subset %>% filter(simul.data != "TCGA.KIRC"),
-                aes(ymin = diff_min_auc, ymax = diff_max_auc)) +
-  geom_point(data = performdat_degenes_diff_subset %>% filter(simul.data != "TCGA.KIRC")) +
-  geom_errorbar(data = performdat_degenes_diff_subset %>% filter(simul.data == "TCGA.KIRC"),
-                aes(ymin = diff_min_auc, ymax = diff_max_auc),
-                width = 0,
-                linewidth = 1) +
-  geom_point(data = performdat_degenes_diff_subset %>% filter(simul.data == "TCGA.KIRC"),
-             size = 2) +
-  scale_color_manual(values = rev(cols),
-                     breaks = c(TRUE, FALSE),
-                     labels = c("TCGA dataset used \nby Baik et al. (2020)",
-                                "Other 13 selected \nTCGA datasets")) +
-  facet_grid(nDE + nSample ~ Methods, labeller = label_parsed) +
-  theme_bw() +
-  labs(y = bquote(AUC - max * (AUC)), col = "Dataset selection", x = "Median dispersion") +
-  theme(legend.position = "top",
-        strip.background = element_rect(fill = "grey90"))
-
+p_rel = plotres(performdat_degenes_diff_subset %>%
+                  rename(min_auc = diff_min_auc, max_auc = diff_max_auc,
+                         median_auc = diff_median_auc),
+                rel = TRUE)
 
 
 ggpubr::ggarrange(p_abs, p_rel,
@@ -344,37 +307,6 @@ ggpubr::ggarrange(p_abs, p_rel,
 ggsave(file = "./deanalysis/results/plots/deanalysis_results.eps",
        height = 9, width = 6.5, device = "eps")
 
-
-# all methods and parameters
-plotres = function(dataset, rel) {
-  if (rel) {
-    y = bquote(AUC - max * (AUC))
-  } else {
-    y = bquote(AUC)
-  }
-  p = ggplot(dataset,
-             aes(y = median_auc, col = simul.data == "TCGA.KIRC", group = Methods,
-                 x = simul.data_disp_median)) +
-    geom_errorbar(data = dataset %>% filter(simul.data != "TCGA.KIRC"),
-                  aes(ymin = min_auc, ymax = max_auc)) +
-    geom_point(data = dataset %>% filter(simul.data != "TCGA.KIRC")) +
-    geom_errorbar(data = dataset %>% filter(simul.data == "TCGA.KIRC"),
-                  aes(ymin = min_auc, ymax = max_auc),
-                  width = 0,
-                  linewidth = 1) +
-    geom_point(data = dataset %>% filter(simul.data == "TCGA.KIRC"),
-               size = 2) +
-    scale_color_manual(values = rev(cols),
-                       breaks = c(TRUE, FALSE),
-                       labels = c("TCGA dataset used \nby Baik et al. (2020)",
-                                  "Other 13 selected \nTCGA datasets")) +
-    facet_grid(nDE + nSample ~ Methods, labeller = label_parsed) +
-    theme_bw() +
-    labs(y = y, col = "Dataset selection", x = "Median dispersion") +
-    theme(legend.position = "top",
-          strip.background = element_rect(fill = "grey90"))
-  return(p)
-}
 ## Study abbreviation, study name, and number of samples for the 14 TCGA datasets (Table S3) -------
 # Load TCGA disease code table from TCGAutils package (for study/cancer names)
 data("diseaseCodes", package = "TCGAutils")
