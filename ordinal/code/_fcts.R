@@ -1,9 +1,20 @@
+############################################################################ ---
+# Code for the manuscript "Statistical parametric simulation studies based on
+#   real data" by Christina Sauer, F. Julian D. Lange, Maria Thurow, Ina
+#   Dormuth, and Anne-Laure Boulesteix
+# 
+# File name:   _fcts.R
+# Author:      Christina Sauer
+# Description: TODO   
+# Notes:     
+############################################################################ ---
+
 # FUNCTIONS wilcox_quiet, fisher_quiet, chisq_quiet, lrm_quiet
 # = functions that run Wilcox/Fisher/Chisq test and proportional odds ordinal logistic regression model
 # INPUT
 # - x: vector reflecting treatment indicator
 # - y: vector reflecting ordinal outcome
-# OUTPUT: 
+# OUTPUT:
 # - p.value: list including p-value + information added by using quietly adverb: output, warnings, messages
 wilcox_quiet = quietly(function(x, y) {
   p.value = wilcox.test(y[x == 1], y[x == 2])$p.value
@@ -27,16 +38,16 @@ lrm_quiet = quietly(function(x, y) {
 
 
 
-# FUNCTION run_methods_fct 
-# = function that returns pvalues from several methods testing differences in treatment groups with 
+# FUNCTION run_methods_fct
+# = function that returns p-values from several methods testing differences in treatment groups with
 #   ordinal outcome
 # INPUT
 # - x: vector reflecting treatment indicator
 # - y: vector reflecting ordinal outcome
-# OUTPUT: 
-# - estimdat: data.frame with pvalues from all methods and potential warnings
+# OUTPUT:
+# - estimdat: data.frame with p-values from all methods and potential warnings
 run_methods_fct = function(x, y) {
-  ## Wilcox.test -----------------------------------------------------------------------------------
+  ## Wilcoxon rank-sum test ------------------------------------------------------------------------
   res_wilcox = wilcox_quiet(x, y)
   
   ## Fisher test -----------------------------------------------------------------------------------
@@ -45,7 +56,7 @@ run_methods_fct = function(x, y) {
   ## Chi-squared test ------------------------------------------------------------------------------
   res_chisq = chisq_quiet(x, y)
   
-  ## proportional odds ordinal logistic regression model -------------------------------------------
+  ## Proportional odds ordinal logistic regression model -------------------------------------------
   res_lrm = lrm_quiet(x, y)
 
   method_warnings = list("wilcox" = res_wilcox$warnings, "fisher" = res_fisher$warnings,
@@ -64,59 +75,61 @@ run_methods_fct = function(x, y) {
   return(estimdat)
 }
 
-# FUNCTION generate_simuldat_fct 
-# = function that generates ordinal data 
+# FUNCTION generate_simuldat_fct
+# = function that generates ordinal data
 # INPUT
-# - probs1, probs2: probability of ordinal outcome for both treatment groups 
+# - probs1, probs2: probability of ordinal outcome for both treatment groups
 # - nsample: total number of observations in both groups
 # - k: number of categories of ordinal variable
-# OUTPUT: 
+# OUTPUT:
 # - x: vector reflecting treatment indicator
 # - y: vector reflecting ordinal outcome
 generate_simuldat_fct = function(probs1, probs2, nsample, k) {
-  # group assignment
+  # Group assignment
   x = factor(rep(c(1, 2), each = nsample/2))
   
-  # ordinal outcome in each group
+  # Ordinal outcome in each group
   y = vector("numeric", length = nsample)
   y[x == 1] = sample(1:k, nsample/2, replace = TRUE, prob = probs1)
   y[x == 2] = sample(1:k, nsample/2, replace = TRUE, prob = probs2)
   
   return(list("x" = x, "y" = y))
 }
-  
-# FUNCTION generate_simuldat_estimdat_statesdat_fct 
-# = function that runs simulation reflecting an RCT with ordinal outcome. 
+
+# FUNCTION generate_simuldat_estimdat_statesdat_fct
+# = function that runs simulation reflecting an RCT with ordinal outcome.
 #   Note: If for repetition i the number of categories with observations is less than k,
-#   the methods are not applied to this data set and will return NA as pvalue. 
+#   the methods are not applied to this dataset and will return NA as the p-value.
 # INPUT
 # - nrep: number of simulation repetitions
-# - seed: seed
+# - seed: random seed
 # - setting: includes the probabilities for each category in each group, the number of categories,
-#   the settingname, and potentially more information which however is optional.
+#   the settingname, and potentially more information which, however, is optional.
 # - nsample: total number of observations
-# - ground_truth: indicates whether the null case ("same_probs") should be simulated or different
-#   probabilities in both groups ("diff_probs"). If "same_probs", then probabilities from group 2 
-#   (reflecting the control group) will be used
-# OUTPUT: 
-# - return = estimdat: nmethod x nrep - data frame with pvalues from each considered method for each repetition
+# - ground_truth: indicates whether the null case (same probabilities in both groups, "same_probs")
+#   should be simulated or the effect case (different probabilities in the two groups, "diff_probs").
+#   If "same_probs", then probabilities from group 2 (reflecting the control group) will be used for
+#   both groups.
+# OUTPUT:
+# - return = estimdat: nmethod x nrep - data frame with p-values from each considered method for each repetition
 # - save = statesdat_list, simuldata_list: save states and simulated datasets
 generate_simuldat_estimdat_statesdat_fct = function(nrep,
                                                     seed,
                                                     setting,
                                                     nsample,
                                                     ground_truth = c("same_probs", "diff_probs")) {
-  # seed
+  # Seed
   set.seed(seed)
   statesdat_list = vector("list", nrep + 1)
   simuldata_list = vector("list", nrep)
-  # prepare parameters and estimates dataset
+  
+  # Prepare parameters and estimates dataset
   estimdat = as.data.frame(matrix(data = NA, nrow = nrep, ncol = 4 + 1))  # 4 methods
   colnames(estimdat) = c("p_wilcox", "p_fisher", "p_chisq", "p_lrm", "warnings")
   
   settingname = setting$settingname
   
-  # get probabilities and k
+  # Get probabilities and k
   k = setting$k
 
   probs1 = setting %>% select(contains("group1_h"))
@@ -134,14 +147,14 @@ generate_simuldat_estimdat_statesdat_fct = function(nrep,
     setting = setting %>% mutate(across(contains("group1_h"), ~NA))
   }
   
-  # generate data and run methods
+  # Generate data and run methods
   for(i in 1:nrep) {
-    # store random number generator state
+    # Store random number generator state
     statesdat_list[[i]] = .Random.seed
-    # generate data
+    # Generate data
     simuldata = generate_simuldat_fct(probs1 = probs1, probs2 = probs2, nsample = nsample, k = k)
     simuldata_list[[i]] = simuldata
-    # run methods (but only if all categories have observations)
+    # Run methods (but only if all categories have observations)
     if (length(unique(simuldata$y)) == k) {
       estimdat[i, ] = run_methods_fct(x = simuldata$x, y = simuldata$y)
     } else {
@@ -156,7 +169,7 @@ generate_simuldat_estimdat_statesdat_fct = function(nrep,
   estimdat = cbind(estimdat, setting)
   #estimdat = estimdat %>% mutate(unique_categories = sapply(simuldata_list, FUN = function(i) length(unique(i$y))))
   
-  # save states and simulated datasets and return estimated dataset
+  # Save states and simulated datasets and return estimated dataset
   save(statesdat_list, simuldata_list,
        file = paste0("./ordinal/data/simulation/statesdat_simuldat_n", nsample, "_nrep",
                      format(nrep, scientific = FALSE), "_", settingname, ".RData"))
@@ -166,11 +179,12 @@ generate_simuldat_estimdat_statesdat_fct = function(nrep,
 
 # FUNCTION rel_effect_fct
 # = function that calculates the relative effect (i.e. the probability that observations in one group 
-#   tend to be larger) for two probability vectors, based on Funatogawaa and Funatogawa 2023/ Munzel and Hauschke 2003
+#   tend to be larger) for two probability vectors, based on Funatogawa and Funatogawa, 2023 / Munzel
+#   and Hauschke, 2003
 # INPUT
 # - prob1: probability vector 1
 # - prob2: probability vector 2
-# OUTPUT: 
+# OUTPUT:
 # - theta: relative effect
 rel_effect_fct = function(prob1, prob2) {
   k = length(prob1)
@@ -188,12 +202,12 @@ rel_effect_fct = function(prob1, prob2) {
 
 
 # FUNCTION asymp_var_fct
-# = function that calculates the asymptotic variance for two probability vectors, based on Funatogawaa
-#   and Funatogawa 2023/ Munzel and Hauschke 2003
+# = function that calculates the asymptotic variance for two probability vectors, based on Funatogawa
+#   and Funatogawa, 2023 / Munzel and Hauschke, 2003
 # INPUT
 # - prob1: probability vector 1
 # - prob2: probability vector 2
-# OUTPUT: 
+# OUTPUT:
 # - list(sigma1, sigma2): list with asymptotic variance of both groups
 asymp_var_fct = function(prob1, prob2) {
   k = length(prob1)

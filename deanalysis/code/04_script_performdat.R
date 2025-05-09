@@ -1,19 +1,30 @@
-# Script to generate performances measures datasets for deanalysis simulation 
+############################################################################ ---
+# Code for the manuscript "Statistical parametric simulation studies based on
+#   real data" by Christina Sauer, F. Julian D. Lange, Maria Thurow, Ina
+#   Dormuth, and Anne-Laure Boulesteix
+# 
+# File name:   04_script_performdat.R
+# Author:      Christina Sauer
+# Description: Script to generate performances measures datasets 
+# Notes:     
+############################################################################ ---
+
 library(dplyr)
 library(ROCR)
 library(compareDEtools)
+
 source("./deanalysis/code/_fcts.R")
 
-# Get TCGA data set names (only those with >= 10 samples) ------------------------------------------
+# Get TCGA dataset names (only datasets with >= 10 samples) ----------------------------------------
 load("./deanalysis/data/tcga_parameters.RData")
 nsample = purrr::map_depth(tcga_parameters, 1, "k_count") %>% purrr::map(., ~ ncol(.) / 2)
 tcga_parameters = tcga_parameters[nsample >= 10]
 data.types.names = paste0("TCGA.", gsub("\\_.*", "", names(tcga_parameters)))
 rm(nsample, tcga_parameters)
 
-# Set parameters from Baik -------------------------------------------------------------------------
+# Set parameters from Baik et al. ------------------------------------------------------------------
 # (adopted from https://github.com/unistbig/compareDEtools/blob/master/Example%20for%20paper%20figures.R)
-## Fig2 in Baik ----
+## Figure 2 in Baik et al.--------------------------------------------------------------------------
 param.fig2 = list()
 param.fig2$nvar = 10000
 param.fig2$rep.end = 50
@@ -30,7 +41,7 @@ param.fig2$rowType = c("AUC", "TPR", "trueFDR")
 
 analysis.dir = "./deanalysis/results/rdata/"
 
-## Fig3 in Baik ----
+## Figure 3 in Baik et al. -------------------------------------------------------------------------
 param.fig3 = list()
 param.fig3$nvar = 10000
 param.fig3$rep.end = 50
@@ -43,7 +54,7 @@ param.fig3$modes = c("D", "R", "OS")
 
 
 # Generate performance measures datasets -----------------------------------------------------------
-## Fig. 2 in Baik (settings with > 0 DE genes) ----
+## Figure 2 in Baik et al. (settings with > 0 DE genes) --------------------------------------------
 performdat_list = vector("list", length = length(data.types.names))
 for (i in 1:length(data.types.names)) {
   performdat_list[[i]] = vector("list", length = length(param.fig2$modes))
@@ -66,15 +77,15 @@ for (i in 1:length(data.types.names)) {
   }
 }
 
-
+# Save dataset
 performdat_degenes = bind_rows(performdat_list)
 save(performdat_degenes, file = "./deanalysis/results/rdata/performdat_degenes.RData")
 rm(performdat_list)
 ###
 # Note:
 # - For trueFDR, there are settings/datasets with NAs. This is because "we calculated true FDR only
-#   when five or more significant genes were detected in each method" (Baik et al.), i.e.,
-#   when length(which(FDR < 0.1)) <= 5 (see function performance_plot_new)
+#   when five or more significant genes were detected in each method" (Baik et al.), i.e.
+#   when length(which(FDR < 0.1)) <= 5 (see function performance_plot_new).
 table(is.na(performdat_degenes$trueFDR))
 table(is.na(performdat_degenes$TPR))
 table(is.na(performdat_degenes$AUC))
@@ -82,7 +93,7 @@ table(is.na(performdat_degenes$AUC))
 ###
 
 
-## Fig. 3 in Baik (settings with = 0 DE genes) ----
+## Figure 3 in Baik et al. (settings with = 0 DE genes) --------------------------------------------
 performdat_list = vector("list", length = length(data.types.names))
 for (i in 1:length(data.types.names)) {
   performdat_list[[i]] = vector("list", length = length(param.fig3$modes))
@@ -101,7 +112,7 @@ for (i in 1:length(data.types.names)) {
   }
 }
 
-
+# Save dataset
 performdat_nodegenes = bind_rows(performdat_list)
 save(performdat_nodegenes, file = "./deanalysis/results/rdata/performdat_nodegenes.RData")
 rm(performdat_list)

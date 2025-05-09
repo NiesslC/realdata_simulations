@@ -1,4 +1,14 @@
-# Evaluate performance results of methods 
+############################################################################ ---
+# Code for the manuscript "Statistical parametric simulation studies based on
+#   real data" by Christina Sauer, F. Julian D. Lange, Maria Thurow, Ina
+#   Dormuth, and Anne-Laure Boulesteix
+# 
+# File name:   05b_results_method_performance.R
+# Author:      Christina Sauer
+# Description: Evaluate performance results of methods and generate plots and tables   
+# Notes:     
+############################################################################ ---
+
 library(dplyr)
 library(reshape2)
 library(ggplot2); theme_set(theme_bw())
@@ -6,15 +16,15 @@ library(stringr)
 
 source("./deanalysis/code/_fcts.R")
 
-# 1) PREPARATIONS ----------------------------------------------------------------------------------
-# Get TCGA parameter meta data ---------------------------------------------------------------------
+# PREPARATIONS -------------------------------------------------------------------------------------
+## Get TCGA parameter meta data --------------------------------------------------------------------
 load("./deanalysis/data/tcga_parameters_metadata.RData")
 rm(disp.cancer_all, disp.normal_all, mean.cancer_all, mean.normal_all)
-# only keep TCGA data sets with >= 10 samples
+# Only keep TCGA datasets with >= 10 samples
 disp.total_all = disp.total_all %>% filter(nsample >= 10)
 mean.total_all = mean.total_all %>% filter(nsample >= 10)
 
-# Get simulation results ---------------------------------------------------------------------------
+## Get simulation results --------------------------------------------------------------------------
 load("./deanalysis/results/rdata/performdat_degenes.RData")
 load("./deanalysis/results/rdata/performdat_nodegenes.RData")
 performdat_degenes = performdat_degenes %>%
@@ -24,7 +34,7 @@ performdat_degenes = performdat_degenes %>%
                                               "voom.qn", "voom.sw", "ROTS",
                                               "BaySeq", "PoissonSeq", "SAMseq")))
 
-# add info on nsample, median dispersion and median mean
+# Add info on number of samples, median dispersion, and median mean
 mean_disp_info = full_join(
   disp.total_all %>%
     group_by(dataset, nsample) %>%
@@ -44,7 +54,7 @@ performdat_degenes = full_join(performdat_degenes, mean_disp_info, by = "simul.d
 performdat_nodegenes = full_join(performdat_nodegenes, mean_disp_info, by = "simul.data")
 rm(mean_disp_info)
 
-# calculate median performance values 
+# Calculate median performance values
 performdat_degenes_median = performdat_degenes %>%
   group_by(Methods, simul.data, simul.data_mean_median, simul.data_disp_median,
            nSample, mode, nDE) %>%
@@ -63,8 +73,8 @@ performdat_nodegenes_median = performdat_nodegenes %>%
            nSample, mode) %>%
   summarise(median_fpc = median(FPC, na.rm = TRUE))
 
-# 2) CHECK RESULTS & DATA CHARACTERISTICS ----------------------------------------------------------
-# Check distribution of mean and dispersion in datasets -------------------------------------------
+# CHECK RESULTS & DATA CHARACTERISTICS -------------------------------------------------------------
+## Check distribution of mean and dispersion in datasets -------------------------------------------
 ggplot(mean.total_all, aes(x = log(1 + mean))) +
   geom_histogram() +
   facet_wrap(~dataset)
@@ -76,17 +86,17 @@ ggplot(disp.total_all, aes(x = log(disp))) +
 ggplot(disp.total_all %>% group_by(dataset, nsample) %>% summarise(median = median(disp)),
        aes(x = nsample, y = median)) +
   geom_point()
-# mean seems to be very similar, dispersion not 
+# -> mean seems to be very similar, dispersion not
 
-# Check number of NAs in DESeq.pc & DESeq2 ---------------------------------------------------------
+## Check number of NAs in DESeq.pc & DESeq2 --------------------------------------------------------
 performdat_degenes %>% group_by(Methods) %>% summarise(sum = sum(nas))
 
-# Check NAs in trueFDR -----------------------------------------------------------------------------
-# no NAs in other performance measures
+## Check NAs in trueFDR ----------------------------------------------------------------------------
+# Make sure there are no NAs in other performance measures
 stopifnot(sum(is.na(performdat_degenes$AUC)) == 0 & 
             sum(is.na(performdat_degenes$TPR)) == 0 & 
             sum(is.na(performdat_nodegenes$FPC)) == 0)
-# inspect NAs of trueFDR
+# Inspect NAs of trueFDR
 performdat_degenes %>%
   group_by(Methods, simul.data, nSample, mode, nDE) %>%
   summarise(sumna = sum(is.na(trueFDR))) %>%
@@ -98,10 +108,10 @@ performdat_degenes %>%
   theme(legend.position = "bottom",
         axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
 
-# Association of absolute performances with data set characteristics -------------------------------
+## Association between absolute performance and dataset characteristics ----------------------------
 
-## performance vs. median dispersion and mean (for one setting incl. simulation error) ----
-## Dispersion
+### Performance vs. median dispersion and mean (for one setting incl. simulation error) ------------
+#### Dispersion ------------------------------------------------------------------------------------
 p_base = ggplot(performdat_degenes %>%
                   filter(nSample == 3 & mode == "D" & nDE == "pDE = 5%"),
                 aes(col = simul.data, x = simul.data_disp_median)) +
@@ -110,11 +120,11 @@ p_base = ggplot(performdat_degenes %>%
   labs(x = "", y = "") +
   theme(legend.position = "bottom",
         axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
-# AUC 
+# AUC
 p_base %+% list(aes(y = AUC))
-# TPR 
+# TPR
 p_base %+% list(aes(y = TPR))
-# trueFDR 
+# trueFDR
 p_base %+% list(aes(y = trueFDR))
 # FPC
 ggplot(performdat_nodegenes %>% filter(nSample == 3 & mode == "D"),
@@ -125,8 +135,8 @@ ggplot(performdat_nodegenes %>% filter(nSample == 3 & mode == "D"),
   theme(legend.position = "bottom",
         axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
 
-## Mean 
-# AUC 
+#### Mean ------------------------------------------------------------------------------------------
+# AUC
 p_base %+% list(aes(x = simul.data_mean_median, y = AUC))
 # TPR
 p_base %+% list(aes(x = simul.data_mean_median, y = TPR))
@@ -141,8 +151,8 @@ ggplot(performdat_nodegenes %>% filter(nSample == 3 & mode == "D"),
   theme(legend.position = "bottom",
         axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
 
-## performance vs. median dispersion and mean (median performance measure) ----
-## Dispersion 
+### Performance vs. median dispersion and mean (median performance measure) ------------------------
+#### Dispersion ------------------------------------------------------------------------------------
 p_base = ggplot(performdat_degenes_median,
                 aes(col = Methods, group = Methods, x = simul.data_disp_median)) +
   geom_vline(xintercept = unique(performdat_degenes$simul.data_disp_median[performdat_degenes$simul.data == "TCGA.KIRC"]),
@@ -150,11 +160,11 @@ p_base = ggplot(performdat_degenes_median,
   geom_point() +
   geom_line() +
   facet_grid(~ nDE ~ nSample ~ mode)
-# AUC 
+# AUC
 p_base %+% list(aes(y = median_auc))
-# TPR 
+# TPR
 p_base %+% list(aes(y = median_tpr))
-# trueFDR 
+# trueFDR
 p_base %+% list(aes(y = median_truefdr))
 # FPC
 ggplot(performdat_nodegenes_median,
@@ -166,7 +176,7 @@ ggplot(performdat_nodegenes_median,
   facet_grid(~ nSample ~ mode, scales = "free")
 
 
-## Mean 
+#### Mean ------------------------------------------------------------------------------------------
 p_base = ggplot(performdat_degenes_median,
                 aes(col = Methods, group = Methods, x = simul.data_mean_median)) +
   geom_vline(xintercept = unique(performdat_degenes$simul.data_mean_median[performdat_degenes$simul.data == "TCGA.KIRC"]),
@@ -174,11 +184,11 @@ p_base = ggplot(performdat_degenes_median,
   geom_point() +
   geom_line() +
   facet_grid(~ nDE ~ nSample ~ mode)
-# AUC 
+# AUC
 p_base %+% list(aes(y = median_auc))
-# TPR 
+# TPR
 p_base %+% list(aes(y = median_tpr))
-# trueFDR 
+# trueFDR
 p_base %+% list(aes(y = median_truefdr))
 # FPC
 ggplot(performdat_nodegenes_median,
@@ -191,11 +201,9 @@ ggplot(performdat_nodegenes_median,
 
 
 
-# Association of relative performances with data set characteristics -------------------------------
+## Association between relative performance and dataset characteristics ----------------------------
 
-# Missing: performance measures apart from AUC
-
-# Top performing methods (AUC) ----
+## Top performing methods (AUC) --------------------------------------------------------------------
 topranking = performdat_degenes_median %>%
   mutate(simul.data = gsub("TCGA.", "", simul.data))
 topranking = topranking %>%
@@ -214,6 +222,7 @@ topranking = topranking %>%
                                .$simul.data)) %>%
   ungroup() %>%
   select(Methods, topmethod, simul.data, nSample, mode, nDE)
+
 ggplot(topranking, aes(y = Methods, x = simul.data, fill = topmethod)) +
   geom_tile(color = "black") +
   scale_fill_manual(values = c(`FALSE` = "gray90", `TRUE` = "mediumseagreen")) +
@@ -227,12 +236,9 @@ ggplot(topranking, aes(y = Methods, x = simul.data, fill = topmethod)) +
            alpha = .1, col = "red")
 
 
-# 3) PLOTS FOR PUBLICATION -------------------------------------------------------------------------
-
+# PLOTS AND TABLES FOR PUBLICATION -----------------------------------------------------------------
 cols = c("#DDA0DD", "#00CDCD") ##7AC5CD") # "#FFB90F", c("#00CDCD", "#FFFFFF", "#FFFFFF")
 
-# Select "Default" setting and only methods that were in some settings of "Default" listed as recommended
-# in Table 2 of Baik et al. 
 performdat_degenes_median = performdat_degenes_median %>%
   filter(mode == "D") %>%
   mutate(nSample = factor(nSample, levels = c("3", "10"),
@@ -241,7 +247,7 @@ performdat_degenes_median = performdat_degenes_median %>%
                       labels = c("italic(p)[DE] == 0.05", "italic(p)[DE] == 0.10",
                                  "italic(p)[DE] == 0.30", "italic(p)[DE] == 0.60")))
 
-# A) Dataset characteristics
+## Dataset characteristics (median dispersion) (Figure 3) ------------------------------------------
 ggplot(performdat_degenes_median %>%
          ungroup() %>%
          select(simul.data, simul.data_disp_median) %>%
@@ -262,21 +268,23 @@ ggplot(performdat_degenes_median %>%
 ggsave(file = "./deanalysis/results/plots/deanalysis_characteristics.eps",
        height = 4, width = 6.5, device = "eps")
 
-
-# B) Dataset characteristics vs absolute performance
+## Dataset characteristics vs. performance for selected methods and DGMs (Figure 4) ----------------
+### Median dispersion vs. absolute AUC performance (Figure 4a) -------------------------------------
+# Select only methods that were in some settings of "Default" listed as recommended
+# in Table 2 of Baik et al.
 performdat_degenes_median_subset = performdat_degenes_median %>%
   filter(nDE %in% c("italic(p)[DE] == 0.05", "italic(p)[DE] == 0.30") &
            !(Methods %in% c("BaySeq", "voom.tmm", "voom.qn", "voom.sw")))
 
 p_abs = plotres(dataset = performdat_degenes_median_subset, rel = FALSE)
 
-
-# C) relative performance
+### Median dispersion vs. relative AUC performance (Figure 4b) -------------------------------------
 performdat_degenes_diff = performdat_degenes %>%
   group_by(Repeat, simul.data, simul.data_mean_median, simul.data_disp_median,
            nSample, mode, nDE) %>%
   mutate(diff_auc = AUC - max(AUC)) %>%
   ungroup()
+
 performdat_degenes_diff = performdat_degenes_diff %>%
   group_by(Methods, simul.data, simul.data_mean_median, simul.data_disp_median,
            nSample, mode, nDE) %>%
@@ -290,6 +298,8 @@ performdat_degenes_diff = performdat_degenes_diff %>%
                       labels = c("italic(p)[DE] == 0.05", "italic(p)[DE] == 0.10",
                                  "italic(p)[DE] == 0.30", "italic(p)[DE] == 0.60")))
 
+# Select only methods that were in some settings of "Default" listed as recommended
+# in Table 2 of Baik et al.
 performdat_degenes_diff_subset = performdat_degenes_diff %>%
   filter(nDE %in% c("italic(p)[DE] == 0.05", "italic(p)[DE] == 0.30") &
            !(Methods %in% c("BaySeq", "voom.tmm", "voom.qn", "voom.sw")))
@@ -299,7 +309,7 @@ p_rel = plotres(performdat_degenes_diff_subset %>%
                          median_auc = diff_median_auc),
                 rel = TRUE)
 
-
+# Arrange plots in one figure (Figure 4)
 ggpubr::ggarrange(p_abs, p_rel,
                   ncol = 1,
                   labels = c("a", "b"),
@@ -319,15 +329,23 @@ diseaseCodes %>%
   mutate(Study.Name = str_to_sentence(Study.Name),
          total_n = 2 * nsample,  # nsample is the number of paired samples
          .keep = "unused")
+
+## Dataset characteristics vs. performance for all methods and DGMs (Figures S3-S6) ----------------
+### Median dispersion vs. absolute AUC performance (Figures S3 and S4) -----------------------------
+#### Methods: edgeR, edgeR.ql, DESeq.pc, and DESeq2 (Figure S3) ------------------------------------
 plotres(performdat_degenes_median %>% filter(grepl("edgeR|DESe", Methods)),
         rel = FALSE)
 ggsave(file = "./deanalysis/results/plots/deanalysis_results_supp_a.eps",
        height = 7, width = 6.5, device = "eps")
+
+#### Methods: voom.tmm, voom.qn, voom.sw, ROTS, BaySeq, and PoissonSeq (Figure S4) -----------------
 plotres(performdat_degenes_median %>% filter(!grepl("edgeR|DESe", Methods)),
         rel = FALSE)
 ggsave(file = "./deanalysis/results/plots/deanalysis_results_supp_b.eps",
        height = 7, width = 6.5, device = "eps")
 
+### Median dispersion vs. relative AUC performance (Figures S5 and S6) -----------------------------
+#### Methods: edgeR, edgeR.ql, DESeq.pc, and DESeq2 (Figure S5) ------------------------------------
 plotres(performdat_degenes_diff %>%
           filter(grepl("edgeR|DESe", Methods)) %>%
           rename(min_auc = diff_min_auc, max_auc = diff_max_auc,
@@ -335,6 +353,8 @@ plotres(performdat_degenes_diff %>%
         rel = TRUE)
 ggsave(file = "./deanalysis/results/plots/deanalysis_results_supp_c.eps",
        height = 7, width = 6.5, device = "eps")
+
+#### Methods: voom.tmm, voom.qn, voom.sw, ROTS, BaySeq, and PoissonSeq (Figure S6) -----------------
 plotres(performdat_degenes_diff %>%
           filter(!grepl("edgeR|DESe", Methods)) %>%
           rename(min_auc = diff_min_auc, max_auc = diff_max_auc,

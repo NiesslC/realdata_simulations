@@ -1,4 +1,15 @@
-# get tumor-normal paired samples
+############################################################################ ---
+# Code for the manuscript "Statistical parametric simulation studies based on
+#   real data" by Christina Sauer, F. Julian D. Lange, Maria Thurow, Ina
+#   Dormuth, and Anne-Laure Boulesteix
+# 
+# File name:   _fcts.R
+# Author:      Christina Sauer
+# Description:    
+# Notes:     
+############################################################################ ---
+
+# Function to get tumor-normal paired samples
 get_paired_data_fct = function(dataset) {
   dataset = as.data.frame(dataset)
   id = data.frame(ids = colnames(dataset))
@@ -16,17 +27,17 @@ get_paired_data_fct = function(dataset) {
 }
 
 
-# function based on compareDEtools::generateDatasetParameter()
+# Function based on compareDEtools::generateDatasetParameter()
 get_parameters_fct = function(dataset) {
   #data(kidney, package = "SimSeq")
   nsample = ncol(dataset)
-  k_count = dataset  # kidney$counts
+  k_count = dataset  #kidney$counts
   index.cancer = which(substr(colnames(dataset), start = 14, stop = 15) == "01") #(1:72) * 2
   index.normal = which(substr(colnames(dataset), start = 14, stop = 15) == "11") #index.cancer - 1
   stopifnot(length(index.normal) + length(index.cancer) == ncol(dataset))
   k_count = k_count[, c(index.cancer, index.normal)]
   
-  # Normal 
+  # Normal
   dge.normal = DGEList(counts = k_count[, ((nsample/2) + 1):nsample],
                        group = factor(rep(2, (nsample/2))))
   dge.normal = calcNormFactors(dge.normal)
@@ -34,6 +45,7 @@ get_parameters_fct = function(dataset) {
   dge.normal = estimateTagwiseDisp(dge.normal)
   disp.normal = dge.normal$tagwise.dispersion
   mean.normal = apply(k_count[, ((nsample/2) + 1):nsample], 1, mean)
+  
   # Cancer
   dge.cancer = DGEList(counts = k_count[, 1:(nsample/2)], group = factor(rep(1, (nsample/2))))
   dge.cancer = calcNormFactors(dge.cancer)
@@ -42,7 +54,7 @@ get_parameters_fct = function(dataset) {
   disp.cancer = dge.cancer$tagwise.dispersion
   mean.cancer = apply(k_count[, 1:(nsample/2)], 1, mean)
   
-  # Total 
+  # Total
   k_mean.total = apply(k_count, 1, mean)
   k_index.filter = which(k_mean.total < 10)
   k_mean.total = k_mean.total[-k_index.filter]
@@ -66,16 +78,18 @@ get_parameters_fct = function(dataset) {
   return(dataset.parameters)
 }
 
-# Modifications generateDatasetParameter: 
-# - Specify argument <data.types> to allow to chose from TCGA data sets 
-# - Do not calculate parameters for TCGA (incl. KIRC) in function but load them from .RData file
+# Modifications generateDatasetParameter(): 
+# - Add argument <data.types> to allow to chose from TCGA datasets 
+# - Do not calculate parameters for TCGA (incl. KIRC) in this function. Instead 
+#   calculate them in get_parameters_fct() and load them here from the .RData file
+#   that get_parameters_fct() saves.
 generateDatasetParameter_new = function(data.types) {
   
-  # TCGA data sets ----
+  # TCGA datasets ----
   load("./deanalysis/data/tcga_parameters.RData")
   
   # to make sure function still works in the initial version when one/more of c(KIRC, Bottomly, mBdK and mKdB)
-  # is used -> use KIRC from TCGA data sets
+  # is used -> use KIRC from TCGA datasets
   if (!grepl("TCGA", data.types)) {
     which.tcga = "KIRC"
   } else {
@@ -96,52 +110,51 @@ generateDatasetParameter_new = function(data.types) {
   
   rm(index.tcga, tcga_parameters)
   
-  # # Bottomly count data from ReCount ----
-  # # (URL: http://bowtie-bio. sourceforge.net/recount/ 
-  # load(system.file("extdata", "bottomly_eset.RData", package = "compareDEtools"))
-  # b_count <- exprs(bottomly.eset)
-  # strain <- pData(bottomly.eset)[, "strain"]
-  # index.C = which(strain == "C57BL/6J")
-  # index.D = which(strain == "DBA/2J")
-  # b_count = b_count[, c(index.C, index.D)]
-  # dge.C = DGEList(counts = b_count[, 1:10], group = factor(rep(1, 
-  #                                                              10)))
-  # dge.C = calcNormFactors(dge.C)
-  # dge.C = estimateCommonDisp(dge.C)
-  # dge.C = estimateTagwiseDisp(dge.C)
-  # disp.C = dge.C$tagwise.dispersion
-  # mean.C = apply(b_count[, 1:10], 1, mean)
-  # dge.D = DGEList(counts = b_count[, 11:21], group = factor(rep(2, 
-  #                                                               11)))
-  # dge.D = calcNormFactors(dge.D)
-  # dge.D = estimateCommonDisp(dge.D)
-  # dge.D = estimateTagwiseDisp(dge.D)
-  # disp.D = dge.D$tagwise.dispersion
-  # mean.D = apply(b_count[, 11:21], 1, mean)
-  # b_mean.total = apply(b_count, 1, mean)
-  # b_index.filter = which(b_mean.total < 10)
-  # b_mean.total = b_mean.total[-b_index.filter]
-  # disp.C = disp.C[-b_index.filter]
-  # disp.D = disp.D[-b_index.filter]
-  # mean.C = mean.C[-b_index.filter]
-  # mean.D = mean.D[-b_index.filter]
-  # b_dge.total = DGEList(counts = b_count, group = factor(c(rep(1, 
-  #                                                              10), rep(2, 11))))
-  # b_dge.total = calcNormFactors(b_dge.total)
-  # b_dge.total = estimateCommonDisp(b_dge.total)
-  # b_dge.total = estimateTagwiseDisp(b_dge.total)
-  # b_disp.total = b_dge.total$tagwise.dispersion
-  # b_disp.total = b_disp.total[-b_index.filter]
-  # 
-  # # SEQC count data from GEO database with accession number GSE49712  -----
-  # # (URL: https://www.ncbi.nlm.nih.gov/ geo/query/acc.cgi?acc=GSE49712).
-  # SEQC <- system.file("extdata", "GSE49712_HTSeq.txt", package = "compareDEtools")
-  # s_count <- read.table(SEQC, header = T)
-  # s_count <- s_count[grep("no_feature|ambiguous|too_low_aQual|not_aligned|alignment_not_unique", 
-  #                         rownames(s_count), invert = TRUE), ]
-  # s_mean.total = apply(s_count, 1, mean)
-  # s_index.filter = which(s_mean.total < 10)
-  
+  ## Bottomly count data from ReCount ----
+  ## (URL: http://bowtie-bio. sourceforge.net/recount/ 
+  #load(system.file("extdata", "bottomly_eset.RData", package = "compareDEtools"))
+  #b_count <- exprs(bottomly.eset)
+  #strain <- pData(bottomly.eset)[, "strain"]
+  #index.C = which(strain == "C57BL/6J")
+  #index.D = which(strain == "DBA/2J")
+  #b_count = b_count[, c(index.C, index.D)]
+  #dge.C = DGEList(counts = b_count[, 1:10], group = factor(rep(1, 
+  #                                                             10)))
+  #dge.C = calcNormFactors(dge.C)
+  #dge.C = estimateCommonDisp(dge.C)
+  #dge.C = estimateTagwiseDisp(dge.C)
+  #disp.C = dge.C$tagwise.dispersion
+  #mean.C = apply(b_count[, 1:10], 1, mean)
+  #dge.D = DGEList(counts = b_count[, 11:21], group = factor(rep(2, 
+  #                                                              11)))
+  #dge.D = calcNormFactors(dge.D)
+  #dge.D = estimateCommonDisp(dge.D)
+  #dge.D = estimateTagwiseDisp(dge.D)
+  #disp.D = dge.D$tagwise.dispersion
+  #mean.D = apply(b_count[, 11:21], 1, mean)
+  #b_mean.total = apply(b_count, 1, mean)
+  #b_index.filter = which(b_mean.total < 10)
+  #b_mean.total = b_mean.total[-b_index.filter]
+  #disp.C = disp.C[-b_index.filter]
+  #disp.D = disp.D[-b_index.filter]
+  #mean.C = mean.C[-b_index.filter]
+  #mean.D = mean.D[-b_index.filter]
+  #b_dge.total = DGEList(counts = b_count, group = factor(c(rep(1, 
+  #                                                             10), rep(2, 11))))
+  #b_dge.total = calcNormFactors(b_dge.total)
+  #b_dge.total = estimateCommonDisp(b_dge.total)
+  #b_dge.total = estimateTagwiseDisp(b_dge.total)
+  #b_disp.total = b_dge.total$tagwise.dispersion
+  #b_disp.total = b_disp.total[-b_index.filter]
+  #
+  ## SEQC count data from GEO database with accession number GSE49712  -----
+  ## (URL: https://www.ncbi.nlm.nih.gov/ geo/query/acc.cgi?acc=GSE49712).
+  #SEQC <- system.file("extdata", "GSE49712_HTSeq.txt", package = "compareDEtools")
+  #s_count <- read.table(SEQC, header = T)
+  #s_count <- s_count[grep("no_feature|ambiguous|too_low_aQual|not_aligned|alignment_not_unique", 
+  #                        rownames(s_count), invert = TRUE), ]
+  #s_mean.total = apply(s_count, 1, mean)
+  #s_index.filter = which(s_mean.total < 10)
   
   dataset.parameters = list(k_count = k_count, disp.normal = disp.normal,
                             mean.normal = mean.normal, disp.cancer = disp.cancer,
@@ -154,8 +167,8 @@ generateDatasetParameter_new = function(data.types) {
   return(dataset.parameters)
 }
 
-# Modifications GenerateSyntheticSimulation: 
-# - add argument <data.types> to generateDatasetParameter()
+# Modifications GenerateSyntheticSimulation():
+# - Add <data.types> argument to generateDatasetParameter()
 GenerateSyntheticSimulation_new = function(working.dir,
                                            data.types,
                                            fixedfold = FALSE,
@@ -245,9 +258,9 @@ GenerateSyntheticSimulation_new = function(working.dir,
 }
 
 
-# Modifications SyntheticDataSimulation: 
-# - change <simul.data == "KIRC"> to  <grepl("TCGA|KIRC",simul.data)> 
-# - change <simul.data != "KIRC"> to  <!grepl("TCGA|KIRC",simul.data)> 
+# Modifications SyntheticDataSimulation():
+# - Change <simul.data == "KIRC"> to <grepl("TCGA|KIRC", simul.data)>
+# - Change <simul.data != "KIRC"> to <!grepl("TCGA|KIRC", simul.data)>
 SyntheticDataSimulation_new = function(simul.data,
                                        dataset,
                                        random_sampling = FALSE,
@@ -451,9 +464,9 @@ SyntheticDataSimulation_new = function(simul.data,
   saveRDS(cpd, datasetName)
 }
 
-# Modifications SyntheticDataSimulation: 
-# - return data frame instead of plot (-> remove figure.dir argument)
-# - remove adjusted pvalues with NAs and include this information in the results data frame
+# Modifications performance_plot():
+# - Return dataframe instead of plot (-> remove <figure.dir> argument)
+# - Remove adjusted p-values with NAs and include this information in the results dataframe
 performance_plot_new = function(working.dir,
                                 fixedfold = FALSE,
                                 simul.data,
@@ -517,8 +530,8 @@ performance_plot_new = function(working.dir,
             }
             result = result@result.table
             
-            if ((tools %in% c("DESeq.pc", "DESeq2")) & any(is.na(result$adjpvalue))) {# if DESeq.pc or DESeq2, exclude genes with NA adjpvalue
-              nas_temp = append(nas_temp, sum(is.na(result$adjpvalue))) # csauer: add info regarding NAs
+            if ((tools %in% c("DESeq.pc", "DESeq2")) && any(is.na(result$adjpvalue))) {  # if DESeq.pc or DESeq2, exclude genes with NA adjpvalue
+              nas_temp = append(nas_temp, sum(is.na(result$adjpvalue)))  # csauer: add info regarding NAs
               result = result %>% filter(!is.na(adjpvalue))
             } else {
               nas_temp = append(nas_temp, 0)  # csauer: add info regarding NAs
@@ -583,7 +596,6 @@ performance_plot_new = function(working.dir,
           tfdr = append(tfdr, tfdr_temp)
           auc = append(auc, auc_temp)
           nas = append(nas, nas_temp)  # csauer: add info regarding NAs
-          
         }
       }
     }
@@ -600,64 +612,64 @@ performance_plot_new = function(working.dir,
                    mode = mode,
                    nas = nas)  # csauer: add info regarding NAs
   return(res)
-  # res$Color = factor(res$Color)
-  # res$nDE = paste(res$nDE, sep = "")
-  # res2 = melt(res, measure.vars = c("AUC", "TPR", "trueFDR"))
-  # nDE_Factor = paste("pDE = ", round(nDE * 100/nvar, 2), "%", 
-  #                    sep = "")
-  # res2$nDE = factor(res$nDE, levels = nDE_Factor)
-  # default_order = c("edgeR", "edgeR.ql", "edgeR.rb", "DESeq.pc", 
-  #                   "DESeq2", "voom.tmm", "voom.qn", "voom.sw", "ROTS", "BaySeq", 
-  #                   "BaySeq.qn", "PoissonSeq", "SAMseq")
-  # axis_order = intersect(default_order, AnalysisMethods)
-  # for (size in nsample) {
-  #   for (up in fraction.upregulated) {
-  #     up = paste("upDE = ", round(up * 100, 2), "%", sep = "")
-  #     sub.res.temp = res2[res2$nSample == size, ]
-  #     sub.res = sub.res.temp[sub.res.temp$upDE == up, ]
-  #     rowtypes.index <- which(sub.res$variable %in% rowType)
-  #     sub.res = sub.res[rowtypes.index, ]
-  #     miss = which(is.na(sub.res$value))
-  #     if (length(miss) > 0) {
-  #       sub.res = sub.res[-miss, ]
-  #     }
-  #     pd = position_dodge(width = 0)
-  #     gbase = ggplot(sub.res, aes(y = value, x = Methods, 
-  #                                 color = Methods)) + geom_boxplot(position = pd, 
-  #                                                                  outlier.shape = NA) + facet_grid(variable ~ nDE, 
-  #                                                                                                   scales = "free") + scale_x_discrete(limits = axis_order) + 
-  #       theme(axis.text.x = element_text(angle = 90, 
-  #                                        hjust = 1)) + scale_colour_manual(name = "Methods", 
-  #                                                                          labels = ts[order(ts)], values = tc[order(ts)])
-  #     gline = gbase
-  #     if (fixedfold) {
-  #       tt = paste(simul.data, " / ", type, " / SS = ", 
-  #                  size, " / ", up, " / fixedfold", sep = "")
-  #     }
-  #     else {
-  #       tt = paste(simul.data, " / ", type, " / SS = ", 
-  #                  size, " / ", up, sep = "")
-  #     }
-  #     tt = gsub(pattern = "upDE", replacement = "Bal", 
-  #               x = tt)
-  #     print(gline + aes(x = Methods) + labs(x = "Methods", 
-  #                                           y = up) + ggtitle(tt))
-  #     figurename = gsub(pattern = " / ", replacement = "_", 
-  #                       x = tt)
-  #     figurename = gsub(pattern = " = ", replacement = "_", 
-  #                       x = figurename, fixed = T)
-  #     figurename = gsub(pattern = "%", replacement = "percent", 
-  #                       x = figurename, fixed = T)
-  #     figurename = paste(figurename, ".pdf", sep = "")
-  #     ggsave(file = paste(figure.dir, "/", figurename, 
-  #                         sep = ""), width = 10, height = 8)
-  #     dev.off()
-  #   }
-  # }
+  #res$Color = factor(res$Color)
+  #res$nDE = paste(res$nDE, sep = "")
+  #res2 = melt(res, measure.vars = c("AUC", "TPR", "trueFDR"))
+  #nDE_Factor = paste("pDE = ", round(nDE * 100/nvar, 2), "%", 
+  #                   sep = "")
+  #res2$nDE = factor(res$nDE, levels = nDE_Factor)
+  #default_order = c("edgeR", "edgeR.ql", "edgeR.rb", "DESeq.pc", 
+  #                  "DESeq2", "voom.tmm", "voom.qn", "voom.sw", "ROTS", "BaySeq", 
+  #                  "BaySeq.qn", "PoissonSeq", "SAMseq")
+  #axis_order = intersect(default_order, AnalysisMethods)
+  #for (size in nsample) {
+  #  for (up in fraction.upregulated) {
+  #    up = paste("upDE = ", round(up * 100, 2), "%", sep = "")
+  #    sub.res.temp = res2[res2$nSample == size, ]
+  #    sub.res = sub.res.temp[sub.res.temp$upDE == up, ]
+  #    rowtypes.index <- which(sub.res$variable %in% rowType)
+  #    sub.res = sub.res[rowtypes.index, ]
+  #    miss = which(is.na(sub.res$value))
+  #    if (length(miss) > 0) {
+  #      sub.res = sub.res[-miss, ]
+  #    }
+  #    pd = position_dodge(width = 0)
+  #    gbase = ggplot(sub.res, aes(y = value, x = Methods, 
+  #                                color = Methods)) + geom_boxplot(position = pd, 
+  #                                                                 outlier.shape = NA) + facet_grid(variable ~ nDE, 
+  #                                                                                                  scales = "free") + scale_x_discrete(limits = axis_order) + 
+  #      theme(axis.text.x = element_text(angle = 90, 
+  #                                       hjust = 1)) + scale_colour_manual(name = "Methods", 
+  #                                                                         labels = ts[order(ts)], values = tc[order(ts)])
+  #    gline = gbase
+  #    if (fixedfold) {
+  #      tt = paste(simul.data, " / ", type, " / SS = ", 
+  #                 size, " / ", up, " / fixedfold", sep = "")
+  #    }
+  #    else {
+  #      tt = paste(simul.data, " / ", type, " / SS = ", 
+  #                 size, " / ", up, sep = "")
+  #    }
+  #    tt = gsub(pattern = "upDE", replacement = "Bal", 
+  #              x = tt)
+  #    print(gline + aes(x = Methods) + labs(x = "Methods", 
+  #                                          y = up) + ggtitle(tt))
+  #    figurename = gsub(pattern = " / ", replacement = "_", 
+  #                      x = tt)
+  #    figurename = gsub(pattern = " = ", replacement = "_", 
+  #                      x = figurename, fixed = T)
+  #    figurename = gsub(pattern = "%", replacement = "percent", 
+  #                      x = figurename, fixed = T)
+  #    figurename = paste(figurename, ".pdf", sep = "")
+  #    ggsave(file = paste(figure.dir, "/", figurename, 
+  #                        sep = ""), width = 10, height = 8)
+  #    dev.off()
+  #  }
+  #}
 }
 
-# Modifications fpc_performance_plot: 
-# - return data frame instead of plot (-> remove figure.dir argument)
+# Modifications fpc_performance_plot():
+# - Return dataframe instead of plot (-> remove <figure.dir> argument)
 fpc_performance_plot_new = function(working.dir,
                                     simul.data,
                                     rep.start = 1,
@@ -729,39 +741,45 @@ fpc_performance_plot_new = function(working.dir,
                    disp.Type = disp.Type,
                    mode = mode)
   return(res)
-  # res$Color = factor(res$Color)
-  # res2 = melt(res, measure.vars = c("FPC"))
-  # res2 <- res2[, -which(names(res2) == "Condition")]
-  # res2$variable = res$Condition
-  # default_order = c("edgeR", "edgeR.ql", "edgeR.rb", "DESeq.pc",
-  #                   "DESeq2", "voom.tmm", "voom.qn", "voom.sw", "ROTS", "BaySeq",
-  #                   "BaySeq.qn", "PoissonSeq", "SAMseq")
-  # axis_order = intersect(default_order, AnalysisMethods)
-  # sub.res = res2
-  # miss = which(is.na(sub.res$value))
-  # if (length(miss) > 0) {
-  #   sub.res = sub.res[-miss, ]
-  # }
-  # pd = position_dodge(width = 0)
-  # gbase = ggplot(sub.res, aes(y = value, x = Methods, color = Methods)) +
-  #   geom_boxplot(position = pd, outlier.shape = NA) + facet_grid(variable ~
-  #                                                                  nSample, scales = "free") + scale_x_discrete(limits = axis_order) +
-  #   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
-  #   scale_colour_manual(name = "Methods", labels = ts[order(ts)],
-  #                       values = tc[order(ts)])
-  # gline = gbase
-  # tt = paste(simul.data, " / False Positive Counts / ", disp.Type,
-  #            " dispersion ", sep = "")
-  # print(gline + aes(x = Methods) + labs(x = "Methods", y = "False Positive counts") +
-  #         ggtitle(tt))
-  # figurename = gsub(pattern = " / ", replacement = "_", x = tt)
-  # figurename = paste(figurename, ".pdf", sep = "")
-  # ggsave(file = paste(figure.dir, "/", figurename, sep = ""),
-  #        width = 10, height = 8)
-  # dev.off()
+  #res$Color = factor(res$Color)
+  #res2 = melt(res, measure.vars = c("FPC"))
+  #res2 <- res2[, -which(names(res2) == "Condition")]
+  #res2$variable = res$Condition
+  #default_order = c("edgeR", "edgeR.ql", "edgeR.rb", "DESeq.pc",
+  #                  "DESeq2", "voom.tmm", "voom.qn", "voom.sw", "ROTS", "BaySeq",
+  #                  "BaySeq.qn", "PoissonSeq", "SAMseq")
+  #axis_order = intersect(default_order, AnalysisMethods)
+  #sub.res = res2
+  #miss = which(is.na(sub.res$value))
+  #if (length(miss) > 0) {
+  #  sub.res = sub.res[-miss, ]
+  #}
+  #pd = position_dodge(width = 0)
+  #gbase = ggplot(sub.res, aes(y = value, x = Methods, color = Methods)) +
+  #  geom_boxplot(position = pd, outlier.shape = NA) + facet_grid(variable ~
+  #                                                                 nSample, scales = "free") + scale_x_discrete(limits = axis_order) +
+  #  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  #  scale_colour_manual(name = "Methods", labels = ts[order(ts)],
+  #                      values = tc[order(ts)])
+  #gline = gbase
+  #tt = paste(simul.data, " / False Positive Counts / ", disp.Type,
+  #           " dispersion ", sep = "")
+  #print(gline + aes(x = Methods) + labs(x = "Methods", y = "False Positive counts") +
+  #        ggtitle(tt))
+  #figurename = gsub(pattern = " / ", replacement = "_", x = tt)
+  #figurename = paste(figurename, ".pdf", sep = "")
+  #ggsave(file = paste(figure.dir, "/", figurename, sep = ""),
+  #       width = 10, height = 8)
+  #dev.off()
 }
-# Function to generate paper plots
-# separate geom_errorbar and geom_point for better visibility of KIRC
+
+# FUNCTION plotres
+# = function that generates a plot of median dispersion vs. AUC performance
+# INPUT
+# - dataset: performance dataframe 
+# - rel: boolean value indicating whether the relative performance is plotted
+# OUTPUT:
+# - return = p: ggplot
 plotres = function(dataset, rel) {
   if (rel) {
     y = bquote(AUC - max * (AUC))
@@ -771,6 +789,7 @@ plotres = function(dataset, rel) {
   p = ggplot(dataset,
              aes(y = median_auc, col = simul.data == "TCGA.KIRC", group = Methods,
                  x = simul.data_disp_median)) +
+    # Separate geom_errorbar and geom_point for better visibility of KIRC
     geom_errorbar(data = dataset %>% filter(simul.data != "TCGA.KIRC"),
                   aes(ymin = min_auc, ymax = max_auc)) +
     geom_point(data = dataset %>% filter(simul.data != "TCGA.KIRC")) +

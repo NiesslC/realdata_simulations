@@ -1,12 +1,24 @@
+############################################################################ ---
+# Code for the manuscript "Statistical parametric simulation studies based on
+#   real data" by Christina Sauer, F. Julian D. Lange, Maria Thurow, Ina
+#   Dormuth, and Anne-Laure Boulesteix
+# 
+# File name:   02_script_get_tcga_parameters.R
+# Author:      Christina Sauer
+# Description: TODO  
+# Notes:     
+############################################################################ ---
+
 library(dplyr)
 library(edgeR)
 library(reshape2)
 library(stringr)
 library(purrr)
+
 source("./deanalysis/code/_fcts.R")
 
-
 # Get tumor-normal paired samples ------------------------------------------------------------------
+# Load all TCGA datasets
 load("./deanalysis/data/tcga_datasets.RData")
 
 tcga_datasets_paired = vector("list", length = length(tcga_datasets))
@@ -17,7 +29,7 @@ for (i in 1:length(tcga_datasets)) {
 rm(i)
 rm(tcga_datasets)
 
-# Remove data sets without paired samples
+# Remove datasets without paired samples
 names(tcga_datasets_paired)[is.na(tcga_datasets_paired)]
 # [1] "ACC_RNASeq2Gene-20160128"  "DLBC_RNASeq2Gene-20160128" "GBM_RNASeq2Gene-20160128"
 # [4] "LAML_RNASeq2Gene-20160128" "LGG_RNASeq2Gene-20160128"  "MESO_RNASeq2Gene-20160128"
@@ -27,7 +39,6 @@ tcga_datasets_paired = tcga_datasets_paired[!is.na(tcga_datasets_paired)]
 
 
 # Get parameters -----------------------------------------------------------------------------------
-
 tcga_parameters = vector("list", length = length(tcga_datasets_paired))
 names(tcga_parameters) = names(tcga_datasets_paired)
 for (i in 1:length(tcga_datasets_paired)) {
@@ -40,7 +51,7 @@ save(tcga_parameters, file = "./deanalysis/data/tcga_parameters.RData")
 # Get parameter meta data --------------------------------------------------------------------------
 names(tcga_parameters) = word(names(tcga_parameters), 1, sep = "\\_")
 
-## Get information on number of samples and genes ----------------------------------------------------
+## Get information on number of samples and genes --------------------------------------------------
 nsample = purrr::map_depth(tcga_parameters, 1, "k_count") %>% purrr::map(., ~ ncol(.) / 2)
 ngene = purrr::map_depth(tcga_parameters, 1, "k_count") %>% purrr::map(., ~nrow(.))
 nfilter = purrr::map_depth(tcga_parameters, 1, "k_index.filter") %>% purrr::map(., ~length(.))
@@ -51,7 +62,7 @@ dataset_names = names(nsample)
 data_info = data_info %>% mutate(dataset = dataset_names, ngenes_final = ngene - nfilter)
 rm(nsample, ngene, nfilter, dataset_names)
 
-## Extract parameters for mean, dispersion ----------------------------------------------------------
+## Extract parameters for mean, dispersion ---------------------------------------------------------
 mean.normal_all = purrr::map_depth(tcga_parameters, 1, "mean.normal")
 mean.normal_all = reshape2::melt(mean.normal_all, value.name = "mean") %>% dplyr::rename(dataset = L1)
 mean.cancer_all = purrr::map_depth(tcga_parameters, 1, "mean.cancer")
@@ -86,10 +97,11 @@ save(mean.normal_all, mean.cancer_all, mean.total_all,
 # Get parameters from compareDEtools (for comparison) ----------------------------------------------
 library(compareDEtools)
 param = generateDatasetParameter()
-# only keep kirc parameters
+# Only keep KIRC parameters
 param = param[c("k_count", "disp.normal", "mean.normal", "disp.cancer", "mean.cancer",
                 "k_mean.total", "k_index.filter", "k_disp.total")]
-# compare "k_count","k_mean.total","k_index.filter","k_disp.total"
+
+# Compare "k_count", "k_mean.total", "k_index.filter", and "k_disp.total"
 cbind(dim(param$k_count),
       dim(tcga_parameters$`KIRC_RNASeq2Gene-20160128`$k_count))
 cbind(length(param$k_index.filter),

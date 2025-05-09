@@ -1,22 +1,32 @@
-# Script to generate simulated datasets and estimates datasets for deanalysis simulation 
+############################################################################ ---
+# Code for the manuscript "Statistical parametric simulation studies based on
+#   real data" by Christina Sauer, F. Julian D. Lange, Maria Thurow, Ina
+#   Dormuth, and Anne-Laure Boulesteix
+# 
+# File name:   03_script_simuldat_estimdat.R
+# Author:      Christina Sauer
+# Description: Script to generate simulated datasets and estimates datasets   
+# Notes:       
+#   - Mention runtime?
+############################################################################ ---
+
 library(compareDEtools)
 library(compcodeR)
 library(dplyr)
 library(future.apply)
+
 source("./deanalysis/code/_fcts.R")
 
-# Set parameters -----------------------------------------------------------------------------------
-
-# Get TCGA data set names (only those with >= 10 samples)
+# Get TCGA dataset names (only datasets with >= 10 samples) ----------------------------------------
 load("./deanalysis/data/tcga_parameters.RData")
 nsample = purrr::map_depth(tcga_parameters, 1, "k_count") %>% purrr::map(., ~ ncol(.) / 2)
 tcga_parameters = tcga_parameters[nsample >= 10]
 data.types.names = paste0("TCGA.", gsub("\\_.*", "", names(tcga_parameters)))
 rm(nsample, tcga_parameters)
 
-# Set parameters from Baik
+# Set parameters from Baik et al. ------------------------------------------------------------------
 # (adopted from https://github.com/unistbig/compareDEtools/blob/master/Example%20for%20paper%20figures.R)
-# Fig2 in Baik ----
+## Figure 2 in Baik et al.--------------------------------------------------------------------------
 param.fig2 = list()
 param.fig2$nvar = 10000
 param.fig2$rep.end = 50
@@ -31,9 +41,9 @@ param.fig2$fraction.upregulated = 0.5
 param.fig2$disp.Types = "same"
 param.fig2$modes = c("D", "R", "OS")
 param.fig2$rowType = c("AUC", "TPR", "trueFDR")
-#param.fig2$fixedfold = FALSE # Default; not explicitly specified in Baik et al. Code
+#param.fig2$fixedfold = FALSE  # Default; not explicitly specified in Baik et al. code
 
-# Fig3 in Baik ----
+## Figure 3 in Baik et al. -------------------------------------------------------------------------
 param.fig3 = list()
 param.fig3$nvar = 10000
 param.fig3$rep.end = 50
@@ -56,8 +66,7 @@ analysis.dir = "./deanalysis/results/rdata/"
 figure.dir = "./deanalysis/results/plots/"
 
 # Generate simulated datasets ----------------------------------------------------------------------
-
-# Generate data according to Figure 2 in Baik et al. for all TCGA data sets
+## Generate data according to Figure 2 in Baik et al. (settings with > 0 DE genes) -----------------
 set.seed(19549)
 for (i in 1:length(data.types.names)) {
   GenerateSyntheticSimulation_new(working.dir = paste0(dataset.dir, "simulation_degenes/"),
@@ -72,7 +81,7 @@ for (i in 1:length(data.types.names)) {
 }
 rm(i)
 
-# Generate data according to Figure 3 in Baik et al. for all TCGA data sets
+## Generate data according to Figure 3 in Baik et al. (settings with = 0 DE genes) -----------------
 set.seed(19578)
 for (i in 1:length(data.types.names)) {
   GenerateSyntheticSimulation_new(working.dir = paste0(dataset.dir, "simulation_nodegenes/"),
@@ -87,13 +96,14 @@ for (i in 1:length(data.types.names)) {
 }
 rm(i)
 
-# Generate estimates datasets ------------------------------------------------------------
+# Generate estimates datasets ----------------------------------------------------------------------
 Sys.setenv(OMP_NUM_THREADS = "1")
 
-## Methods not changing state of the random number generator ----------------------------------------
+## Methods not changing state of the random number generator ---------------------------------------
+# edgeR, DESeq.pc, DESeq2, voom.tmm, voom.qn, and voom.sw
 plan(multisession, workers = length(data.types.names))  # 14
 future.apply::future_lapply(1:length(data.types.names), function(i) {
-  runSimulationAnalysis(working.dir = paste0(getwd(), "/deanalysis/data/simulation_degenes/"),  # have to use whole path otherwise error
+  runSimulationAnalysis(working.dir = paste0(getwd(), "/deanalysis/data/simulation_degenes/"),  # have to use whole path, otherwise error
                         output.dir = paste0(analysis.dir, "rdata_degenes/"),
                         real = FALSE,
                         data.types = data.types.names[i],
@@ -109,7 +119,7 @@ future.apply::future_lapply(1:length(data.types.names), function(i) {
 
 plan(multisession, workers = length(data.types.names))  # 14
 future.apply::future_lapply(1:length(data.types.names), function(i) {
-  runSimulationAnalysis(working.dir = paste0(getwd(), "/deanalysis/data/simulation_nodegenes/"),  # have to use whole path otherwise error
+  runSimulationAnalysis(working.dir = paste0(getwd(), "/deanalysis/data/simulation_nodegenes/"),  # have to use whole path, otherwise error
                         output.dir = paste0(analysis.dir, "rdata_nodegenes/"),
                         real = FALSE,
                         data.types = data.types.names[i],
@@ -124,11 +134,11 @@ future.apply::future_lapply(1:length(data.types.names), function(i) {
   })
 
 
-## Methods changing state of the random number generator --------------------------------------------
-### edgeR.ql ----------------------------------------------------------------------------------------
+## Methods changing state of the random number generator -------------------------------------------
+### edgeR.ql ---------------------------------------------------------------------------------------
 plan(multisession, workers = length(data.types.names))  # 14
 future.apply::future_lapply(1:length(data.types.names), function(i) {
-  runSimulationAnalysis(working.dir = paste0(getwd(), "/deanalysis/data/simulation_degenes/"),  # have to use whole path otherwise error
+  runSimulationAnalysis(working.dir = paste0(getwd(), "/deanalysis/data/simulation_degenes/"),  # have to use whole path, otherwise error
                         output.dir = paste0(analysis.dir, "rdata_degenes/"),
                         real = FALSE,
                         data.types = data.types.names[i],
@@ -144,7 +154,7 @@ future.apply::future_lapply(1:length(data.types.names), function(i) {
 
 plan(multisession, workers = length(data.types.names))  # 14
 future.apply::future_lapply(1:length(data.types.names), function(i) {
-  runSimulationAnalysis(working.dir = paste0(getwd(), "/deanalysis/data/simulation_nodegenes/"),  # have to use whole path otherwise error
+  runSimulationAnalysis(working.dir = paste0(getwd(), "/deanalysis/data/simulation_nodegenes/"),  # have to use whole path, otherwise error
                         output.dir = paste0(analysis.dir, "rdata_nodegenes/"),
                         real = FALSE,
                         data.types = data.types.names[i],
@@ -159,10 +169,10 @@ future.apply::future_lapply(1:length(data.types.names), function(i) {
   }, future.seed = 19580)
 
 
-### edgeR.rb ----------------------------------------------------------------------------------------
+### edgeR.rb ---------------------------------------------------------------------------------------
 plan(multisession, workers = length(data.types.names))  # 14
 future.apply::future_lapply(1:length(data.types.names), function(i) {
-  runSimulationAnalysis(working.dir = paste0(getwd(), "/deanalysis/data/simulation_degenes/"),  # have to use whole path otherwise error
+  runSimulationAnalysis(working.dir = paste0(getwd(), "/deanalysis/data/simulation_degenes/"),  # have to use whole path, otherwise error
                         output.dir = paste0(analysis.dir, "rdata_degenes/"),
                         real = FALSE,
                         data.types = data.types.names[i],
@@ -178,7 +188,7 @@ future.apply::future_lapply(1:length(data.types.names), function(i) {
 
 plan(multisession, workers = length(data.types.names))  # 14
 future.apply::future_lapply(1:length(data.types.names), function(i) {
-  runSimulationAnalysis(working.dir = paste0(getwd(), "/deanalysis/data/simulation_nodegenes/"),  # have to use whole path otherwise error
+  runSimulationAnalysis(working.dir = paste0(getwd(), "/deanalysis/data/simulation_nodegenes/"),  # have to use whole path, otherwise error
                         output.dir = paste0(analysis.dir, "rdata_nodegenes/"),
                         real = FALSE,
                         data.types = data.types.names[i],
@@ -193,10 +203,10 @@ future.apply::future_lapply(1:length(data.types.names), function(i) {
   }, future.seed = 19581)
 
 
-### ROTS --------------------------------------------------------------------------------------------
+### ROTS -------------------------------------------------------------------------------------------
 plan(multisession, workers = length(data.types.names))  # 14
 future.apply::future_lapply(1:length(data.types.names), function(i) {
-  runSimulationAnalysis(working.dir = paste0(getwd(), "/deanalysis/data/simulation_degenes/"),  # have to use whole path otherwise error
+  runSimulationAnalysis(working.dir = paste0(getwd(), "/deanalysis/data/simulation_degenes/"),  # have to use whole path, otherwise error
                         output.dir = paste0(analysis.dir, "rdata_degenes/"),
                         real = FALSE,
                         data.types = data.types.names[i],
@@ -212,7 +222,7 @@ future.apply::future_lapply(1:length(data.types.names), function(i) {
 
 plan(multisession, workers = length(data.types.names))  # 14
 future.apply::future_lapply(1:length(data.types.names), function(i) {
-  runSimulationAnalysis(working.dir = paste0(getwd(), "/deanalysis/data/simulation_nodegenes/"),  # have to use whole path otherwise error
+  runSimulationAnalysis(working.dir = paste0(getwd(), "/deanalysis/data/simulation_nodegenes/"),  # have to use whole path, otherwise error
                         output.dir = paste0(analysis.dir, "rdata_nodegenes/"),
                         real = FALSE,
                         data.types = data.types.names[i],
@@ -227,10 +237,10 @@ future.apply::future_lapply(1:length(data.types.names), function(i) {
   }, future.seed = 19582)
 
 
-### BaySeq ------------------------------------------------------------------------------------------
+### BaySeq -----------------------------------------------------------------------------------------
 plan(multisession, workers = length(data.types.names))  # 14
 future.apply::future_lapply(1:length(data.types.names), function(i) {
-  runSimulationAnalysis(working.dir = paste0(getwd(), "/deanalysis/data/simulation_degenes/"),  # have to use whole path otherwise error
+  runSimulationAnalysis(working.dir = paste0(getwd(), "/deanalysis/data/simulation_degenes/"),  # have to use whole path, otherwise error
                         output.dir = paste0(analysis.dir, "rdata_degenes/"),
                         real = FALSE,
                         data.types = data.types.names[i],
@@ -246,7 +256,7 @@ future.apply::future_lapply(1:length(data.types.names), function(i) {
 
 plan(multisession, workers = length(data.types.names))  # 14
 future.apply::future_lapply(1:length(data.types.names), function(i) {
-  runSimulationAnalysis(working.dir = paste0(getwd(), "/deanalysis/data/simulation_nodegenes/"),  # have to use whole path otherwise error
+  runSimulationAnalysis(working.dir = paste0(getwd(), "/deanalysis/data/simulation_nodegenes/"),  # have to use whole path, otherwise error
                         output.dir = paste0(analysis.dir, "rdata_nodegenes/"),
                         real = FALSE,
                         data.types = data.types.names[i],
@@ -261,10 +271,10 @@ future.apply::future_lapply(1:length(data.types.names), function(i) {
   }, future.seed = 19583)
 
 
-### PoissonSeq ---------------------------------------------------------------------------------------
+### PoissonSeq -------------------------------------------------------------------------------------
 plan(multisession, workers = length(data.types.names))  # 14
 future.apply::future_lapply(1:length(data.types.names), function(i) {
-  runSimulationAnalysis(working.dir = paste0(getwd(), "/deanalysis/data/simulation_degenes/"),  # have to use whole path otherwise error
+  runSimulationAnalysis(working.dir = paste0(getwd(), "/deanalysis/data/simulation_degenes/"),  # have to use whole path, otherwise error
                         output.dir = paste0(analysis.dir, "rdata_degenes/"),
                         real = FALSE,
                         data.types = data.types.names[i],
@@ -280,7 +290,7 @@ future.apply::future_lapply(1:length(data.types.names), function(i) {
 
 plan(multisession, workers = length(data.types.names)) # 14
 future.apply::future_lapply(1:length(data.types.names), function(i) {
-  runSimulationAnalysis(working.dir = paste0(getwd(), "/deanalysis/data/simulation_nodegenes/"),  # have to use whole path otherwise error
+  runSimulationAnalysis(working.dir = paste0(getwd(), "/deanalysis/data/simulation_nodegenes/"),  # have to use whole path, otherwise error
                         output.dir = paste0(analysis.dir, "rdata_nodegenes/"),
                         real = FALSE,
                         data.types = data.types.names[i],

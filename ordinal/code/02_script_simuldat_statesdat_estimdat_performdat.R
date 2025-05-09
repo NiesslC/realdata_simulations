@@ -1,5 +1,15 @@
-# Script for running the simulation, i.e., a) generating simulated datasets, b) estimates datasets, 
-# c) states data sets, and d) performance measures datasets
+############################################################################ ---
+# Code for the manuscript "Statistical parametric simulation studies based on
+#   real data" by Christina Sauer, F. Julian D. Lange, Maria Thurow, Ina
+#   Dormuth, and Anne-Laure Boulesteix
+# 
+# File name:   02_script_simuldat_statesdat_estimdat_performdat.R
+# Author:      Christina Sauer
+# Description: Script for running the simulation, i.e. a) generating simulated datasets, 
+#              b) estimates datasets, c) states datasets, and d) performance measures datasets    
+# Notes:     
+############################################################################ ---
+
 library(rms)
 library(dplyr)
 library(ggplot2); theme_set(theme_bw())
@@ -7,20 +17,21 @@ library(reshape2)
 library(purrr)
 
 source("./ordinal/code/_fcts.R")
+
+# Get probabilities --------------------------------------------------------------------------------
 load("./ordinal/data/probabilities.RData")
-# group 2 reflects the control group in all simulation settings; group 1 reflects treatment group
+# Group 2 reflects the control group in all simulation settings; group 1 reflects treatment group
 
 # Make sure that each simulation setting has unique name
 stopifnot(all.equal(length(unique(param_nejm$settingname)), nrow(param_nejm)))
 stopifnot(all.equal(length(unique(param_user$settingname)), nrow(param_user)))
 
 # Set parameters -----------------------------------------------------------------------------------
-nrep = 10000  # number of simulation repetitions (required to achieve a MCSE of <0.5% if worst-case SE of 50% coverage occurs, see Morris et al. )
+nrep = 10000  # number of simulation repetitions (required to achieve a MCSE of <0.5% if worst-case SE of 50% coverage occurs, see Morris et al., 2019)
 nsample = 2 * c(30, 60, 100, 150, 300)  # total number of observations
 
-# Generate simulated datasets, estimates datasets, states datasets ---------------------------------
-
-## user-defined, null-case (same probabilities) ----
+# Generate simulated datasets, estimates datasets, and states datasets -----------------------------
+## Researcher-defined probabilities, null case (same probabilities) --------------------------------
 param_user_null = param_user %>% filter(usefornull == TRUE)  # not all settings are used for null case
 param = expand.grid(nsample = nsample, setting_row = 1:nrow(param_user_null))
 
@@ -37,7 +48,7 @@ estimdat_user_null = bind_rows(lapply(1:nrow(param), FUN = function(j) {
 save(estimdat_user_null, file = "./ordinal/results/rdata/estimdat_alluser_null.RData")
 rm(param_user_null, param)
 
-## nejm-sample, null-case (same probabilities) ----
+## Real-data-based probabilities (NEJM sample), null case (same probabilities) ---------------------
 param = expand.grid(nsample = nsample, setting_row = 1:nrow(param_nejm))
 estimdat_nejm_null = bind_rows(lapply(1:nrow(param), FUN = function(j) {
   generate_simuldat_estimdat_statesdat_fct(
@@ -52,8 +63,8 @@ estimdat_nejm_null = bind_rows(lapply(1:nrow(param), FUN = function(j) {
 save(estimdat_nejm_null, file = "./ordinal/results/rdata/estimdat_allnejm_null.RData")
 rm(param)
 
-## user-defined, effect-case (different probabilities) ----
-param_user_effect = param_user %>% filter(useforpower == TRUE)  # not all settings are used for effect case
+## Researcher-defined probabilities, effect case (different probabilities) -------------------------
+param_user_effect = param_user %>% filter(useforpower == TRUE)  # not all settings are used for effect/power case
 param = expand.grid(nsample = nsample, setting_row = 1:nrow(param_user_effect))
 
 estimdat_user_effect = bind_rows(lapply(1:nrow(param), FUN = function(j) {
@@ -69,7 +80,7 @@ estimdat_user_effect = bind_rows(lapply(1:nrow(param), FUN = function(j) {
 save(estimdat_user_effect, file = "./ordinal/results/rdata/estimdat_alluser_effect.RData")
 rm(param_user_effect, param)
 
-## nejm-sample, null-case (different probabilities) ----
+## Real-data-based probabilities (NEJM sample), effect case (different probabilities) --------------
 param = expand.grid(nsample = nsample, setting_row = 1:nrow(param_nejm))
 estimdat_nejm_effect = bind_rows(lapply(1:nrow(param), FUN = function(j) {
   generate_simuldat_estimdat_statesdat_fct(
@@ -85,7 +96,6 @@ save(estimdat_nejm_effect, file = "./ordinal/results/rdata/estimdat_allnejm_effe
 rm(param)
 
 # Generate performance measures dataset ------------------------------------------------------------
-
 # Combine all results
 estimdat_user_null = estimdat_user_null %>%
   mutate(ground_truth = "same_probs", source = "user")
@@ -98,8 +108,7 @@ estimdat_nejm_effect = estimdat_nejm_effect %>%
 performdat = bind_rows(estimdat_user_null, estimdat_nejm_null,
                        estimdat_user_effect, estimdat_nejm_effect)
 
-
-# Summarise warnings for each DGM
+# Summarize warnings for each DGM
 warnings_info = performdat %>%
   group_by(settingname, ground_truth, source, nsample, warnings) %>%
   count() %>%
@@ -143,7 +152,7 @@ performdat = performdat %>%
   select(-(ends_with("n_rep_narm") & !contains("p_lrm"))) %>%
   rename(n_rep_narm = p_lrm_n_rep_narm)
 
-# Make sure that each DGM corresponds to exactly one row 
+# Make sure that each DGM corresponds to exactly one row
 stopifnot(nrow(performdat) ==
             (nrow(estimdat_nejm_effect) +
                nrow(estimdat_nejm_null) +
@@ -159,6 +168,8 @@ performdat = melt(performdat,
                   variable.name = "method",
                   value.name = "reject")
 
-# MCSE
+# Add MCSE
 performdat = performdat %>% mutate(mcse_reject = sqrt((reject * (1 - reject)) / n_rep_narm))
+
+# Save dataset
 save(performdat, file = "./ordinal/results/rdata/performdat.RData")

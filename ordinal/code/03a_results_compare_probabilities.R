@@ -1,3 +1,14 @@
+############################################################################ ---
+# Code for the manuscript "Statistical parametric simulation studies based on
+#   real data" by Christina Sauer, F. Julian D. Lange, Maria Thurow, Ina
+#   Dormuth, and Anne-Laure Boulesteix
+# 
+# File name:   03a_results_compare_probabilities.R
+# Author:      Christina Sauer
+# Description: TODO   
+# Notes:     
+############################################################################ ---
+
 library(reshape2)
 library(stringr)
 library(ggplot2); theme_set(theme_bw())
@@ -7,10 +18,10 @@ library(dplyr)
 library(forcats)
 library(purrr)
 
+# Get probabilities --------------------------------------------------------------------------------
 load("./ordinal/data/probabilities.RData")
 
-# Plots and tables =================================================================================
-## Long format ----
+# Long format
 param_nejm_long = melt(param_nejm,
                        measure.vars = c(paste0("group1_h", 1:8), paste0("group2_h", 1:8)),
                        value.name = "prob")
@@ -18,6 +29,7 @@ param_nejm_long = param_nejm_long %>%
   mutate(group = str_split(param_nejm_long$variable, "_h", simplify = TRUE)[, 1],
          h = str_split(param_nejm_long$variable, "_h", simplify = TRUE)[, 2]) %>%
   drop_na(prob)
+
 param_user_long = melt(param_user,
                        measure.vars = c(paste0("group1_h", 1:7), paste0("group2_h", 1:7)),
                        value.name = "prob")
@@ -26,6 +38,7 @@ param_user_long = param_user_long %>%
          h = str_split(param_user_long$variable, "_h", simplify = TRUE)[, 2]) %>%
   drop_na(prob)
 
+# Plots and tables =================================================================================
 # Number of categories, samples --------------------------------------------------------------------
 table(param_nejm$k)
 table(param_user$k)

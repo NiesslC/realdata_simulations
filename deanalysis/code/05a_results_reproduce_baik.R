@@ -1,14 +1,25 @@
-# reproducibility of Baik et al. (Figure 2 and 3)
-# Evaluate performance results of methods 
-load("./deanalysis/results/rdata/performdat_degenes.RData")
-load("./deanalysis/results/rdata/performdat_nodegenes.RData")
+############################################################################ ---
+# Code for the manuscript "Statistical parametric simulation studies based on
+#   real data" by Christina Sauer, F. Julian D. Lange, Maria Thurow, Ina
+#   Dormuth, and Anne-Laure Boulesteix
+# 
+# File name:   05a_results_reproduce_baik.R
+# Author:      Christina Sauer
+# Description: Evaluate reproducibility of Baik et al. (Figures 2 and 3)   
+# Notes:     
+############################################################################ ---
+
 library(dplyr)
 library(reshape2)
 library(ggplot2)
 library(ggh4x)
 
+# Get simulation results ---------------------------------------------------------------------------
+load("./deanalysis/results/rdata/performdat_degenes.RData")
+load("./deanalysis/results/rdata/performdat_nodegenes.RData")
+
 # Check whether results in Baik et al. could be reproduced -----------------------------------------
-## Fig 2 ----
+## Figure 2 ----------------------------------------------------------------------------------------
 fig2res = melt(performdat_degenes %>% filter(simul.data == "TCGA.KIRC"),
                measure.vars = c("AUC", "TPR", "trueFDR"),
                variable.name = "performance_measure",
@@ -48,9 +59,10 @@ p = arrangeGrob(
   pfig2_base %+% list(subset(fig2res, nSample == 10 & mode == "OS")),
   ncol = 2
   )
+
 ggsave(p, file = "./deanalysis/results/plots/baik_fig2.png", width = 12, height = 15, device = "png")
 
-## Fig 3 ----
+## Figure 3 ----------------------------------------------------------------------------------------
 fig3res = performdat_nodegenes %>%
   filter(simul.data == "TCGA.KIRC") %>%
   mutate(Methods = factor(Methods, levels = c("edgeR", "edgeR.ql", "edgeR.rb",
@@ -63,7 +75,7 @@ stopifnot(all(fig3res %>%
                 summarise(sumnan = sum(is.nan(FPC))) %>%
                 .$sumnan == 0))
 
-# Make plot 
+# Make plot
 pfig3_base = ggplot(fig3res, aes(x = Methods, y = FPC, col = Methods)) +
   geom_boxplot() +
   scale_color_manual(values = unique(fig2res$Color)) +
@@ -89,8 +101,8 @@ p = arrangeGrob(
 
 ggsave(p, file = "./deanalysis/results/plots/baik_fig3.png", width = 5, height = 8, device = "png")
 
-# Conclusion Fig2/Fig3
-# - Results quite similar despite missing seed (and slightly different kirc parameters)
-# - Missing method (SAMSeq in our results)
-# - Fig2: For TrueFDR there are many cases where we have some performance 
-#   values for a method but Baik et al. does not or vice versa 
+# Conclusion Figures 2 and 3:
+# - Results quite similar despite missing seed (and slightly different KIRC parameters)
+# - Missing method (SAMseq in our results)
+# - Figure 2: For trueFDR, there are many cases where we have some performance 
+#   values for a method but Baik et al. does not or vice versa.
