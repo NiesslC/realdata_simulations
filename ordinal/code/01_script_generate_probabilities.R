@@ -159,17 +159,16 @@ param_nejm = param_nejm %>% mutate(settingname = fct_reorder(settingname, k))
 # Long format
 param_nejm_long = melt(param_nejm,
                        measure.vars = c(paste0("group1_h", 1:8), paste0("group2_h", 1:8)),
-                       value.name = "prob")
-param_nejm_long = param_nejm_long %>%
-  mutate(group = str_split(param_nejm_long$variable, "_h", simplify = TRUE)[, 1],
-         h = str_split(param_nejm_long$variable, "_h", simplify = TRUE)[, 2]) %>%
+                       value.name = "prob") %>%
+  mutate(group = str_split(variable, "_h", simplify = TRUE)[, 1],
+         h = str_split(variable, "_h", simplify = TRUE)[, 2]) %>%
   drop_na(prob)
+
 param_user_long = melt(param_user,
                        measure.vars = c(paste0("group1_h", 1:7), paste0("group2_h", 1:7)),
-                       value.name = "prob")
-param_user_long = param_user_long %>%
-  mutate(group = str_split(param_user_long$variable, "_h", simplify = TRUE)[, 1],
-         h = str_split(param_user_long$variable, "_h", simplify = TRUE)[, 2]) %>%
+                       value.name = "prob") %>%
+  mutate(group = str_split(variable, "_h", simplify = TRUE)[, 1],
+         h = str_split(variable, "_h", simplify = TRUE)[, 2]) %>%
   drop_na(prob)
 
 ## Odds ratios -------------------------------------------------------------------------------------

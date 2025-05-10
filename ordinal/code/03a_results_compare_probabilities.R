@@ -21,25 +21,23 @@ load("./ordinal/data/probabilities.RData")
 # Long format
 param_nejm_long = melt(param_nejm,
                        measure.vars = c(paste0("group1_h", 1:8), paste0("group2_h", 1:8)),
-                       value.name = "prob")
-param_nejm_long = param_nejm_long %>%
-  mutate(group = str_split(param_nejm_long$variable, "_h", simplify = TRUE)[, 1],
-         h = str_split(param_nejm_long$variable, "_h", simplify = TRUE)[, 2]) %>%
+                       value.name = "prob") %>%
+  mutate(group = str_split(variable, "_h", simplify = TRUE)[, 1],
+         h = str_split(variable, "_h", simplify = TRUE)[, 2]) %>%
   drop_na(prob)
 
 param_user_long = melt(param_user,
                        measure.vars = c(paste0("group1_h", 1:7), paste0("group2_h", 1:7)),
-                       value.name = "prob")
-param_user_long = param_user_long %>%
-  mutate(group = str_split(param_user_long$variable, "_h", simplify = TRUE)[, 1],
-         h = str_split(param_user_long$variable, "_h", simplify = TRUE)[, 2]) %>%
+                       value.name = "prob") %>%
+  mutate(group = str_split(variable, "_h", simplify = TRUE)[, 1],
+         h = str_split(variable, "_h", simplify = TRUE)[, 2]) %>%
   drop_na(prob)
 
 # Plots and tables =================================================================================
 # Number of categories, samples --------------------------------------------------------------------
 table(param_nejm$k)
 table(param_user$k)
-sum(grepl("Rankin", param_nejm$Outcome))
+sum(grepl("Rankin", param_nejm$outcome))
 sort(param_nejm$group1_n)
 sort(param_nejm$group2_n)
 
@@ -78,25 +76,25 @@ ggplot(param_nejm_long, aes(x = h, y = prob, fill = group)) +
 ggsave(filename = "./ordinal/results/plots/param_nejm.pdf", width = 12, height = 9)
 
 # Cumulative distribution --------------------------------------------------------------------------
-param_user_long_cum = param_user_long %>%
+param_user_long %>%
   group_by(settingname, group) %>%
   arrange(h) %>%
   mutate(cumprob = cumsum(prob)) %>%
   ungroup() %>%
-  arrange(settingname, group, h)
-ggplot(param_user_long_cum, aes(x = h, y = cumprob, col = group, group = group)) +
+  arrange(settingname, group, h) %>%
+  ggplot(aes(x = h, y = cumprob, col = group, group = group)) +
   geom_point() +
   geom_line() +
   facet_wrap(~settingname, scales = "free_x")
 ggsave("./ordinal/results/plots/param_user_cumdist.pdf", width = 12, height = 9)
 
-param_nejm_long_cum = param_nejm_long %>%
+param_nejm_long %>%
   group_by(settingname, group) %>%
   arrange(h) %>%
   mutate(cumprob = cumsum(prob)) %>%
   ungroup() %>%
-  arrange(settingname, group, h)
-ggplot(param_nejm_long_cum, aes(x = h, y = cumprob, col = group, group = group)) +
+  arrange(settingname, group, h) %>%
+  ggplot(aes(x = h, y = cumprob, col = group, group = group)) +
   geom_point() +
   geom_line() +
   facet_wrap(~settingname, scales = "free_x")

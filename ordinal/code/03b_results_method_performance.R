@@ -35,17 +35,16 @@ param_user = param_user %>% filter(k == 7)
 # Long format
 param_nejm_long = melt(param_nejm,
                        measure.vars = c(paste0("group1_h", 1:8), paste0("group2_h", 1:8)),
-                       value.name = "prob")
-param_nejm_long = param_nejm_long %>%
-  mutate(group = str_split(param_nejm_long$variable, "_h", simplify = TRUE)[, 1],
-         h = str_split(param_nejm_long$variable, "_h", simplify = TRUE)[, 2]) %>%
+                       value.name = "prob") %>%
+  mutate(group = str_split(variable, "_h", simplify = TRUE)[, 1],
+         h = str_split(variable, "_h", simplify = TRUE)[, 2]) %>%
   drop_na(prob)
+
 param_user_long = melt(param_user,
                        measure.vars = c(paste0("group1_h", 1:7), paste0("group2_h", 1:7)),
-                       value.name = "prob")
-param_user_long = param_user_long %>%
-  mutate(group = str_split(param_user_long$variable, "_h", simplify = TRUE)[, 1],
-         h = str_split(param_user_long$variable, "_h", simplify = TRUE)[, 2]) %>%
+                       value.name = "prob") %>%
+  mutate(group = str_split(variable, "_h", simplify = TRUE)[, 1],
+         h = str_split(variable, "_h", simplify = TRUE)[, 2]) %>%
   drop_na(prob)
 
 # CHECK RESULTS & DATA CHARACTERISTICS -------------------------------------------------------------
@@ -136,7 +135,7 @@ performdat %>%
 cols = c("Researcher-specified" = "#00CDCD", "Real-data-based" = "#DDA0DD") ##7AC5CD") # "#FFB90F", c("#00CDCD", "#FFFFFF", "#FFFFFF")
 
 ## Dataset characteristics (absolute deviation from 0.5 in the relative effect) (Figure 1) ---------
-param_char = bind_rows(param_user, param_nejm) %>%
+bind_rows(param_user, param_nejm) %>%
   mutate(source = factor(
     case_when(
       journal %in% c("NEJM", "New England Journal of Medicine") ~ "nejm",
@@ -145,17 +144,14 @@ param_char = bind_rows(param_user, param_nejm) %>%
     levels = c("user", "nejm"),
     labels = c("Researcher-specified", "Real-data-based"))
     ) %>%
-  select(settingname, source, rel_effect)
-
-p_char = ggplot(param_char, aes(x = source, y = abs(0.5 - rel_effect), col = source)) +
-  geom_point(data = subset(param_char, source == "Researcher-specified")) +
-  geom_point(data = subset(param_char, source == "Real-data-based"),
+  select(settingname, source, rel_effect) %>%
+  ggplot(aes(x = source, y = abs(0.5 - rel_effect), col = source)) +
+  geom_point(data = . %>% filter(source == "Researcher-specified")) +
+  geom_point(data = . %>% filter(source == "Real-data-based"),
              position = position_jitter(seed = 2, width = 0.04)) +
-  theme_bw() +
   scale_color_manual(values = cols, guide = "none") +
   xlim("Researcher-specified", "Real-data-based") +
-  labs(x = "Type of parameter specification", y = expression(group("|", italic(RE) - 0.5, "|"))) #+
-  #theme(text = element_text(size =17))
+  labs(x = "Type of parameter specification", y = expression(group("|", italic(RE) - 0.5, "|")))
 ggsave(file = "./ordinal/results/plots/ordinal_characteristics.eps", height = 3.5, width = 6)
 
 ## Dataset characteristics vs. performance (Figure 2) ----------------------------------------------
@@ -173,7 +169,6 @@ p_abs = performdat %>%
   filter(ground_truth == "diff_probs") %>%
   ggplot(aes(x = abs(0.5 - rel_effect), y = reject, col = source)) +
   geom_point() +
-  #geom_line()+
   facet_grid(nsample ~ method_label,
              labeller = labeller(nsample = label_parsed, method_label = label_value)) +
   scale_color_manual(values = cols) +
@@ -186,14 +181,12 @@ p_abs = performdat %>%
         axis.text.y = element_text(size = 8.4))
 
 ### Dataset characteristics vs. relative performance (Figure 2b) -----------------------------------
-rel_performdat = performdat %>%
+p_rel = performdat %>%
   filter(ground_truth == "diff_probs") %>%
   group_by(settingname, nsample) %>%
   mutate(diff_bestreject = reject - max(reject)) %>%
-  ungroup()
-
-p_rel = ggplot(rel_performdat %>% filter(ground_truth == "diff_probs"),
-               aes(x = abs(0.5 - rel_effect), y = diff_bestreject, col = source)) +
+  ungroup() %>%
+  ggplot(aes(x = abs(0.5 - rel_effect), y = diff_bestreject, col = source)) +
   geom_point() +
   facet_grid(nsample ~ method_label,
              labeller = labeller(nsample = label_parsed, method_label = label_value)) +
@@ -243,12 +236,10 @@ param_examples = bind_rows(param_user_long, param_nejm_long) %>%
 p_bsp = ggplot(data = param_examples, aes(x = h, y = prob)) +
   geom_bar(stat = "identity", position = "dodge", aes(fill = group), col = "grey60") +
   facet_wrap(~settingname, nrow = 1) +
-  #guides(fill = "none")+
   labs(x = "Ordinal category", y = "Estimated outcome probability", fill = "Treatment group") +
   scale_fill_manual(values = c("#E5E5E5", "#A6A6A6"), labels = c("1", "2")) +
   geom_text(data = param_examples %>% select(settingname, rel_effect) %>% distinct(),
             x = 2.5, y = 0.5, aes(label = paste0("Relative effect = ",
                                                  sprintf("%.2f", round(rel_effect, 2))))) +
-  theme_bw() +
   theme(legend.position = "top")
 ggsave(file = "./ordinal/results/plots/ordinal_bsp.eps", height = 3.5, width = 6)

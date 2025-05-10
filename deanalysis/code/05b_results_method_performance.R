@@ -259,7 +259,6 @@ performdat_degenes_median %>%
   ggplot(aes(x = reorder(simul.data, simul.data_disp_median, FUN = median),
              y = simul.data_disp_median, col = simul.data != "KIRC")) +
   geom_point() +
-  theme_bw() +
   scale_color_manual(values = rev(cols),
                      breaks = c(FALSE, TRUE),
                      labels = c("TCGA dataset used \nby Baik et al. (2020)",
@@ -286,9 +285,6 @@ performdat_degenes_diff = performdat_degenes %>%
   group_by(Repeat, simul.data, simul.data_mean_median, simul.data_disp_median,
            nSample, mode, nDE) %>%
   mutate(diff_auc = AUC - max(AUC)) %>%
-  ungroup()
-
-performdat_degenes_diff = performdat_degenes_diff %>%
   group_by(Methods, simul.data, simul.data_mean_median, simul.data_disp_median,
            nSample, mode, nDE) %>%
   summarise(diff_median_auc = median(diff_auc),
