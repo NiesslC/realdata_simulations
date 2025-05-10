@@ -9,10 +9,10 @@
 # Notes:     
 ############################################################################ ---
 
-library(dplyr)
 library(reshape2)
 library(ggplot2)
 library(ggh4x)
+library(dplyr)
 
 # Get simulation results ---------------------------------------------------------------------------
 load("./deanalysis/results/rdata/performdat_degenes.RData")
@@ -50,7 +50,7 @@ pfig2_base = ggplot(fig2res, aes(x = Methods, y = performance_value, col = Metho
   theme(legend.position = "bottom",
         axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
 
-p = arrangeGrob(
+p = gridExtra::arrangeGrob(
   pfig2_base %+% list(subset(fig2res, nSample == 3 & mode == "D"), guides(col = "none")),
   pfig2_base %+% list(subset(fig2res, nSample == 10 & mode == "D"), guides(col = "none")),
   pfig2_base %+% list(subset(fig2res, nSample == 3 & mode == "R"), guides(col = "none")),
@@ -83,7 +83,7 @@ pfig3_base = ggplot(fig3res, aes(x = Methods, y = FPC, col = Methods)) +
   labs(x = "", y = "") +
   theme(legend.position = "bottom",
         axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
-p = arrangeGrob(
+p = gridExtra::arrangeGrob(
   pfig3_base %+% list(subset(fig3res, nSample == 3 & mode == "D"), guides(col = "none"),
                       scale_y_continuous(limits = c(0, 250), breaks = seq(0, 250, 50))),
   pfig3_base %+% list(subset(fig3res, nSample == 10 & mode == "D"), guides(col = "none"),

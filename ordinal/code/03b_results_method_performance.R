@@ -9,13 +9,11 @@
 # Notes:     
 ############################################################################ ---
 
-library(dplyr)
 library(ggplot2); theme_set(theme_bw())
-library(gridExtra)
 library(reshape2)
 library(tidyr)
 library(stringr)
-library(ggrepel)
+library(dplyr)
 
 # PREPARATIONS -------------------------------------------------------------------------------------
 # Load probabilities and performance dataset
@@ -52,13 +50,16 @@ param_user_long = param_user_long %>%
 
 # CHECK RESULTS & DATA CHARACTERISTICS -------------------------------------------------------------
 ## Number of simulated datasets --------------------------------------------------------------------
-ggplot(performdat %>% filter(method == "p_wilcox_reject"),  # only for one method
-       aes(x = n_rep_narm)) +
+performdat %>%
+  filter(method == "p_wilcox_reject") %>%  # only for one method
+  ggplot(aes(x = n_rep_narm)) +
   geom_histogram()
 table(performdat$settingname, performdat$ground_truth) #,performdat$method, performdat$nsample)
 
 # Remove DGMs/settings for which the number of repetitions without NAs is lower than 8,000
-performdat = performdat %>% mutate(settingname = as.factor(settingname)) %>% filter(n_rep_narm >= 8000)
+performdat = performdat %>%
+  mutate(settingname = as.factor(settingname)) %>%
+  filter(n_rep_narm >= 8000)
 table(performdat$settingname, performdat$ground_truth)
 
 performdat %>%
@@ -70,13 +71,15 @@ performdat %>%
 table(performdat$n_rep_narm == 10000, performdat$nsample)
 
 ## Compare overall rejection rates -----------------------------------------------------------------
-ggplot(performdat %>% filter(ground_truth == "diff_probs"),
-       aes(x = factor(method_label), y = reject, col = source)) +
+performdat %>%
+  filter(ground_truth == "diff_probs") %>%
+  ggplot(aes(x = factor(method_label), y = reject, col = source)) +
   geom_boxplot() +
   facet_wrap(~nsample)
 
-ggplot(performdat %>% filter(ground_truth == "same_probs"),
-       aes(x = factor(method_label), y = reject, col = source)) +
+performdat %>%
+  filter(ground_truth == "same_probs") %>%
+  ggplot(aes(x = factor(method_label), y = reject, col = source)) +
   geom_hline(yintercept = 0.05, linetype = "dashed") +
   geom_boxplot() +
   facet_wrap(~nsample)
@@ -90,34 +93,41 @@ performdat = performdat %>%
       rowSums(across(starts_with("group2_h")) * nsample < 5, na.rm = TRUE)
     ))
 
-ggplot(performdat %>%
-         filter(ground_truth == "diff_probs") %>%
-         select(expobs_below5, settingname, source, k, ground_truth) %>%
-         distinct(),
-       aes(y = expobs_below5, x = source)) +
+performdat %>%
+  filter(ground_truth == "diff_probs") %>%
+  select(expobs_below5, settingname, source, k, ground_truth) %>%
+  distinct() %>%
+  ggplot(aes(y = expobs_below5, x = source)) +
   geom_boxplot() +
   facet_wrap(~k)
-ggplot(performdat %>% filter(ground_truth == "diff_probs"), #%>% filter(nsample == 60),
-       aes(x = expobs_below5, y = reject, shape = source, col = method_label)) +
+
+performdat %>%
+  filter(ground_truth == "diff_probs") %>%
+  #filter(nsample == 60),
+  ggplot(aes(x = expobs_below5, y = reject, shape = source, col = method_label)) +
   geom_point() +
   facet_wrap(~ nsample + method_label, ncol = 4)
 
 ## Relative effect ---------------------------------------------------------------------------------
-ggplot(performdat %>%
-         filter(ground_truth == "diff_probs") %>%
-         select(rel_effect, settingname, source) %>%
-         distinct(),
-       aes(x = abs(0.5 - rel_effect), fill = source)) +
+performdat %>%
+  filter(ground_truth == "diff_probs") %>%
+  select(rel_effect, settingname, source) %>%
+  distinct() %>%
+  ggplot(aes(x = abs(0.5 - rel_effect), fill = source)) +
   geom_histogram() +
   facet_wrap(~source, ncol = 1)
 
-ggplot(performdat %>% filter(ground_truth == "diff_probs"), #%>% filter(nsample == 60),
-       aes(x = abs(0.5 - rel_effect), y = reject, shape = source, col = method_label)) +
+performdat %>%
+  filter(ground_truth == "diff_probs") %>%
+  #filter(nsample == 60) %>%
+  ggplot(aes(x = abs(0.5 - rel_effect), y = reject, shape = source, col = method_label)) +
   geom_point() +
   facet_wrap(~ nsample + method_label, ncol = 4)
 
-ggplot(performdat %>% filter(ground_truth == "diff_probs"), #%>% filter(nsample == 60),
-       aes(x = abs(0.5 - rel_effect), y = reject, shape = method_label, col = source)) +
+performdat %>%
+  filter(ground_truth == "diff_probs") %>%
+  #filter(nsample == 60) %>%
+  ggplot(aes(x = abs(0.5 - rel_effect), y = reject, shape = method_label, col = source)) +
   geom_point() +
   #geom_line() +
   facet_grid(nsample ~ method_label)
@@ -159,8 +169,9 @@ performdat = performdat %>%
                           labels = paste0("italic(n) == ", c("60", "120", "200", "300", "600"))))
 
 ### Dataset characteristics vs. absolute performance (Figure 2a) -----------------------------------
-p_abs = ggplot(performdat %>% filter(ground_truth == "diff_probs"),
-               aes(x = abs(0.5 - rel_effect), y = reject, col = source)) +
+p_abs = performdat %>%
+  filter(ground_truth == "diff_probs") %>%
+  ggplot(aes(x = abs(0.5 - rel_effect), y = reject, col = source)) +
   geom_point() +
   #geom_line()+
   facet_grid(nsample ~ method_label,

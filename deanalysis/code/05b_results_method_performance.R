@@ -10,7 +10,6 @@
 ############################################################################ ---
 
 library(dplyr)
-library(reshape2)
 library(ggplot2); theme_set(theme_bw())
 library(stringr)
 
@@ -83,8 +82,10 @@ ggplot(disp.total_all, aes(x = log(disp))) +
   geom_histogram() +
   facet_wrap(~dataset)
 
-ggplot(disp.total_all %>% group_by(dataset, nsample) %>% summarise(median = median(disp)),
-       aes(x = nsample, y = median)) +
+disp.total_all %>%
+  group_by(dataset, nsample) %>%
+  summarise(median = median(disp)) %>%
+  ggplot(aes(x = nsample, y = median)) +
   geom_point()
 # -> mean seems to be very similar, dispersion not
 
@@ -112,9 +113,9 @@ performdat_degenes %>%
 
 ### Performance vs. median dispersion and mean (for one setting incl. simulation error) ------------
 #### Dispersion ------------------------------------------------------------------------------------
-p_base = ggplot(performdat_degenes %>%
-                  filter(nSample == 3 & mode == "D" & nDE == "pDE = 5%"),
-                aes(col = simul.data, x = simul.data_disp_median)) +
+p_base = performdat_degenes %>%
+  filter(nSample == 3 & mode == "D" & nDE == "pDE = 5%") %>%
+  ggplot(aes(col = simul.data, x = simul.data_disp_median)) +
   geom_boxplot() +
   facet_wrap(~Methods, ncol = 3, scales = "free_y") +
   labs(x = "", y = "") +
@@ -127,8 +128,9 @@ p_base %+% list(aes(y = TPR))
 # trueFDR
 p_base %+% list(aes(y = trueFDR))
 # FPC
-ggplot(performdat_nodegenes %>% filter(nSample == 3 & mode == "D"),
-       aes(col = simul.data, x = simul.data_disp_median, y = FPC)) +
+performdat_nodegenes %>%
+  filter(nSample == 3 & mode == "D") %>%
+  ggplot(aes(col = simul.data, x = simul.data_disp_median, y = FPC)) +
   geom_boxplot() +
   facet_wrap(~Methods, ncol = 3, scales = "free_y") +
   labs(x = "", y = "") +
@@ -143,8 +145,9 @@ p_base %+% list(aes(x = simul.data_mean_median, y = TPR))
 # trueFDR
 p_base %+% list(aes(x = simul.data_mean_median, y = trueFDR))
 # FPC
-ggplot(performdat_nodegenes %>% filter(nSample == 3 & mode == "D"),
-       aes(col = simul.data, x = simul.data_mean_median, y = FPC)) +
+performdat_nodegenes %>%
+  filter(nSample == 3 & mode == "D") %>%
+  ggplot(aes(col = simul.data, x = simul.data_mean_median, y = FPC)) +
   geom_boxplot() +
   facet_wrap(~Methods, ncol = 3, scales = "free_y") +
   labs(x = "", y = "") +
@@ -248,13 +251,13 @@ performdat_degenes_median = performdat_degenes_median %>%
                                  "italic(p)[DE] == 0.30", "italic(p)[DE] == 0.60")))
 
 ## Dataset characteristics (median dispersion) (Figure 3) ------------------------------------------
-ggplot(performdat_degenes_median %>%
-         ungroup() %>%
-         select(simul.data, simul.data_disp_median) %>%
-         distinct() %>%
-         mutate(simul.data = str_sub(simul.data, -4, -1)),
-       aes(x = reorder(simul.data, simul.data_disp_median, FUN = median),
-           y = simul.data_disp_median, col = simul.data != "KIRC")) +
+performdat_degenes_median %>%
+  ungroup() %>%
+  select(simul.data, simul.data_disp_median) %>%
+  distinct() %>%
+  mutate(simul.data = str_sub(simul.data, -4, -1)) %>%
+  ggplot(aes(x = reorder(simul.data, simul.data_disp_median, FUN = median),
+             y = simul.data_disp_median, col = simul.data != "KIRC")) +
   geom_point() +
   theme_bw() +
   scale_color_manual(values = rev(cols),

@@ -15,7 +15,7 @@ get_paired_data_fct = function(dataset) {
   id = data.frame(ids = colnames(dataset))
   id$patient = substr(id$ids, start = 9, stop = 12)
   id$type = substr(id$ids, start = 14, stop = 15)
-  id = id %>% filter(type %in% c("01", "11"))
+  id = id %>% dplyr::filter(type %in% c("01", "11"))
   if (length(unique(id$patient)) == nrow(id)) {
     return(NA)
   } else {
@@ -790,14 +790,14 @@ plotres = function(dataset, rel) {
              aes(y = median_auc, col = simul.data == "TCGA.KIRC", group = Methods,
                  x = simul.data_disp_median)) +
     # Separate geom_errorbar and geom_point for better visibility of KIRC
-    geom_errorbar(data = dataset %>% filter(simul.data != "TCGA.KIRC"),
+    geom_errorbar(data = dataset %>% dplyr::filter(simul.data != "TCGA.KIRC"),
                   aes(ymin = min_auc, ymax = max_auc)) +
-    geom_point(data = dataset %>% filter(simul.data != "TCGA.KIRC")) +
-    geom_errorbar(data = dataset %>% filter(simul.data == "TCGA.KIRC"),
+    geom_point(data = dataset %>% dplyr::filter(simul.data != "TCGA.KIRC")) +
+    geom_errorbar(data = dataset %>% dplyr::filter(simul.data == "TCGA.KIRC"),
                   aes(ymin = min_auc, ymax = max_auc),
                   width = 0,
                   linewidth = 1) +
-    geom_point(data = dataset %>% filter(simul.data == "TCGA.KIRC"),
+    geom_point(data = dataset %>% dplyr::filter(simul.data == "TCGA.KIRC"),
                size = 2) +
     scale_color_manual(values = rev(cols),
                        breaks = c(TRUE, FALSE),

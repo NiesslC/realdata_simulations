@@ -12,11 +12,8 @@
 library(reshape2)
 library(stringr)
 library(ggplot2); theme_set(theme_bw())
-library(gridExtra)
 library(tidyr)
 library(dplyr)
-library(forcats)
-library(purrr)
 
 # Get probabilities --------------------------------------------------------------------------------
 load("./ordinal/data/probabilities.RData")

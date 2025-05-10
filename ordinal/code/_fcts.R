@@ -16,22 +16,22 @@
 # - y: vector reflecting ordinal outcome
 # OUTPUT:
 # - p.value: list including p-value + information added by using quietly adverb: output, warnings, messages
-wilcox_quiet = quietly(function(x, y) {
+wilcox_quiet = purrr::quietly(function(x, y) {
   p.value = wilcox.test(y[x == 1], y[x == 2])$p.value
   return(p.value)
   })
 
-fisher_quiet = quietly(function(x, y) {
+fisher_quiet = purrr::quietly(function(x, y) {
   p.value = fisher.test(y, x, simulate.p.value = TRUE)$p.value
   return(p.value)
   })
 
-chisq_quiet = quietly(function(x, y) {
+chisq_quiet = purrr::quietly(function(x, y) {
   p.value = chisq.test(y, x, correct = TRUE)$p.value
   return(p.value)
   })
 
-lrm_quiet = quietly(function(x, y) {
+lrm_quiet = purrr::quietly(function(x, y) {
   p.value = rms::lrm(y ~ x)$stats[5]
   return(p.value)
   })
@@ -64,7 +64,7 @@ run_methods_fct = function(x, y) {
   if (all(sapply(method_warnings, length) == 0)) {
     method_warnings = "no warnings"
   } else {
-    method_warnings = discard(method_warnings, function(x) length(x) == 0)
+    method_warnings = purrr::discard(method_warnings, function(x) length(x) == 0)
     method_warnings = paste(paste(names(method_warnings), method_warnings, sep = ":"),
                             collapse = ", ")
   }
@@ -132,8 +132,8 @@ generate_simuldat_estimdat_statesdat_fct = function(nrep,
   # Get probabilities and k
   k = setting$k
 
-  probs1 = setting %>% select(contains("group1_h"))
-  probs2 = setting %>% select(contains("group2_h"))
+  probs1 = setting %>% dplyr::select(contains("group1_h"))
+  probs2 = setting %>% dplyr::select(contains("group2_h"))
 
   probs1 = unlist(unname(probs1))
   probs1 = probs1[!is.na(probs1)]
@@ -144,7 +144,7 @@ generate_simuldat_estimdat_statesdat_fct = function(nrep,
   
   if (ground_truth == "same_probs") {
     probs1 = probs2
-    setting = setting %>% mutate(across(contains("group1_h"), ~NA))
+    setting = setting %>% dplyr::mutate(across(contains("group1_h"), ~NA))
   }
   
   # Generate data and run methods

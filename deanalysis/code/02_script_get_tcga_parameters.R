@@ -9,11 +9,11 @@
 # Notes:     
 ############################################################################ ---
 
-library(dplyr)
 library(edgeR)
 library(reshape2)
 library(stringr)
 library(purrr)
+library(dplyr)
 
 source("./deanalysis/code/_fcts.R")
 

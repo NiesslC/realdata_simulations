@@ -9,7 +9,6 @@
 # Notes:     
 ############################################################################ ---
 
-library(dplyr)
 library(stringi)
 library(stringr)
 library(readxl)
@@ -18,6 +17,7 @@ library(purrr)
 library(janitor)
 library(forcats)
 library(reshape2)
+library(dplyr)
 
 source("./ordinal/code/_fcts.R")
 

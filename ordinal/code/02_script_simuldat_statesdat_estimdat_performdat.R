@@ -11,10 +11,9 @@
 ############################################################################ ---
 
 library(rms)
-library(dplyr)
-library(ggplot2); theme_set(theme_bw())
 library(reshape2)
 library(purrr)
+library(dplyr)
 
 source("./ordinal/code/_fcts.R")
 
