@@ -278,7 +278,7 @@ performdat_degenes_median_subset = performdat_degenes_median %>%
   filter(nDE %in% c("italic(p)[DE] == 0.05", "italic(p)[DE] == 0.30") &
            !(Methods %in% c("BaySeq", "voom.tmm", "voom.qn", "voom.sw")))
 
-p_abs = plotres(dataset = performdat_degenes_median_subset, rel = FALSE)
+p_abs = plot_results(performdat_degenes_median_subset, rel = FALSE)
 
 ### Median dispersion vs. relative AUC performance (Figure 4b) -------------------------------------
 performdat_degenes_diff = performdat_degenes %>%
@@ -303,10 +303,7 @@ performdat_degenes_diff_subset = performdat_degenes_diff %>%
   filter(nDE %in% c("italic(p)[DE] == 0.05", "italic(p)[DE] == 0.30") &
            !(Methods %in% c("BaySeq", "voom.tmm", "voom.qn", "voom.sw")))
 
-p_rel = plotres(performdat_degenes_diff_subset %>%
-                  rename(min_auc = diff_min_auc, max_auc = diff_max_auc,
-                         median_auc = diff_median_auc),
-                rel = TRUE)
+p_rel = plot_results(performdat_degenes_diff_subset, rel = TRUE)
 
 # Arrange plots in one figure (Figure 4)
 ggpubr::ggarrange(p_abs, p_rel,
@@ -332,32 +329,26 @@ diseaseCodes %>%
 ## Dataset characteristics vs. performance for all methods and DGMs (Figures S3-S6) ----------------
 ### Median dispersion vs. absolute AUC performance (Figures S3 and S4) -----------------------------
 #### Methods: edgeR, edgeR.ql, DESeq.pc, and DESeq2 (Figure S3) ------------------------------------
-plotres(performdat_degenes_median %>% filter(grepl("edgeR|DESe", Methods)),
-        rel = FALSE)
+plot_results(performdat_degenes_median %>% filter(grepl("edgeR|DESe", Methods)),
+             rel = FALSE)
 ggsave(file = "./deanalysis/results/plots/deanalysis_results_supp_a.eps",
        height = 7, width = 6.5, device = "eps")
 
 #### Methods: voom.tmm, voom.qn, voom.sw, ROTS, BaySeq, and PoissonSeq (Figure S4) -----------------
-plotres(performdat_degenes_median %>% filter(!grepl("edgeR|DESe", Methods)),
-        rel = FALSE)
+plot_results(performdat_degenes_median %>% filter(!grepl("edgeR|DESe", Methods)),
+             rel = FALSE)
 ggsave(file = "./deanalysis/results/plots/deanalysis_results_supp_b.eps",
        height = 7, width = 6.5, device = "eps")
 
 ### Median dispersion vs. relative AUC performance (Figures S5 and S6) -----------------------------
 #### Methods: edgeR, edgeR.ql, DESeq.pc, and DESeq2 (Figure S5) ------------------------------------
-plotres(performdat_degenes_diff %>%
-          filter(grepl("edgeR|DESe", Methods)) %>%
-          rename(min_auc = diff_min_auc, max_auc = diff_max_auc,
-                 median_auc = diff_median_auc),
-        rel = TRUE)
+plot_results(performdat_degenes_diff %>% filter(grepl("edgeR|DESe", Methods)),
+             rel = TRUE)
 ggsave(file = "./deanalysis/results/plots/deanalysis_results_supp_c.eps",
        height = 7, width = 6.5, device = "eps")
 
 #### Methods: voom.tmm, voom.qn, voom.sw, ROTS, BaySeq, and PoissonSeq (Figure S6) -----------------
-plotres(performdat_degenes_diff %>%
-          filter(!grepl("edgeR|DESe", Methods)) %>%
-          rename(min_auc = diff_min_auc, max_auc = diff_max_auc,
-                 median_auc = diff_median_auc),
-        rel = TRUE)
+plot_results(performdat_degenes_diff %>% filter(!grepl("edgeR|DESe", Methods)),
+             rel = TRUE)
 ggsave(file = "./deanalysis/results/plots/deanalysis_results_supp_d.eps",
        height = 7, width = 6.5, device = "eps")

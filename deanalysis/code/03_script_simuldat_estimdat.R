@@ -40,7 +40,7 @@ param.fig2$nDE = c(500, 1000, 3000, 6000)
 param.fig2$fraction.upregulated = 0.5
 param.fig2$disp.Types = "same"
 param.fig2$modes = c("D", "R", "OS")
-param.fig2$rowType = c("AUC", "TPR", "trueFDR")
+#param.fig2$rowType = c("AUC", "TPR", "trueFDR")  # not used in this script
 #param.fig2$fixedfold = FALSE  # Default; not explicitly specified in Baik et al. code
 
 ## Figure 3 in Baik et al. -------------------------------------------------------------------------
@@ -63,7 +63,7 @@ param.fig3$fpc = TRUE  # in runSimulationAnalysis() documentation: "[...] Only u
 
 dataset.dir = "./deanalysis/data/"
 analysis.dir = "./deanalysis/results/rdata/"
-figure.dir = "./deanalysis/results/plots/"
+#figure.dir = "./deanalysis/results/plots/"
 
 # Generate simulated datasets ----------------------------------------------------------------------
 ## Generate data according to Figure 2 in Baik et al. (settings with > 0 DE genes) -----------------

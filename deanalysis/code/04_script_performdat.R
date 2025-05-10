@@ -36,7 +36,7 @@ param.fig2$nDE = c(500, 1000, 3000, 6000)
 param.fig2$fraction.upregulated = 0.5
 param.fig2$disp.Types = "same"
 param.fig2$modes = c("D", "R", "OS")
-param.fig2$rowType = c("AUC", "TPR", "trueFDR")
+#param.fig2$rowType = c("AUC", "TPR", "trueFDR")  # argument was removed for modified function
 #param.fig2$fixedfold = FALSE
 
 analysis.dir = "./deanalysis/results/rdata/"
@@ -71,8 +71,7 @@ for (i in 1:length(data.types.names)) {
       fraction.upregulated = param.fig2$fraction.upregulated,
       disp.Type = param.fig2$disp.Types,
       mode = param.fig2$modes[j],
-      AnalysisMethods = param.fig2$AnalysisMethods[-which(param.fig2$AnalysisMethods == "SAMseq")], ###!
-      rowType = param.fig2$rowType
+      AnalysisMethods = param.fig2$AnalysisMethods[-which(param.fig2$AnalysisMethods == "SAMseq")] ###!
     )
   }
 }

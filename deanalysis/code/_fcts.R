@@ -465,7 +465,8 @@ SyntheticDataSimulation_new = function(simul.data,
 }
 
 # Modifications performance_plot():
-# - Return dataframe instead of plot (-> remove <figure.dir> argument)
+# - Return dataframe instead of plot (-> remove <figure.dir> and <rowType> arguments, both
+#   of which are used only for the plotting part of the function)
 # - Remove adjusted p-values with NAs and include this information in the results dataframe
 performance_plot_new = function(working.dir,
                                 fixedfold = FALSE,
@@ -478,7 +479,6 @@ performance_plot_new = function(working.dir,
                                 fraction.upregulated,
                                 disp.Type,
                                 mode,
-                                rowType,
                                 AnalysisMethods) {
   if (length(simul.data) != 1) {
     stop("simul.data must have one element.")
@@ -773,28 +773,34 @@ fpc_performance_plot_new = function(working.dir,
   #dev.off()
 }
 
-# FUNCTION plotres
+# FUNCTION plot_results
 # = function that generates a plot of median dispersion vs. AUC performance
 # INPUT
 # - dataset: performance dataframe 
 # - rel: boolean value indicating whether the relative performance is plotted
 # OUTPUT:
 # - return = p: ggplot
-plotres = function(dataset, rel) {
+plot_results = function(dataset, rel) {
   if (rel) {
-    y = bquote(AUC - max * (AUC))
+    y = "diff_median_auc"
+    y_min = "diff_min_auc"
+    y_max = "diff_max_auc"
+    y_lab = bquote(AUC - max * (AUC))
   } else {
-    y = bquote(AUC)
+    y = "median_auc"
+    y_min = "min_auc"
+    y_max = "max_auc"
+    y_lab = bquote(AUC)
   }
   p = ggplot(dataset,
-             aes(y = median_auc, col = simul.data == "TCGA.KIRC", group = Methods,
+             aes(y = .data[[y]], col = simul.data == "TCGA.KIRC", group = Methods,
                  x = simul.data_disp_median)) +
     # Separate geom_errorbar and geom_point for better visibility of KIRC
     geom_errorbar(data = dataset %>% dplyr::filter(simul.data != "TCGA.KIRC"),
-                  aes(ymin = min_auc, ymax = max_auc)) +
+                  aes(ymin = .data[[y_min]], ymax = .data[[y_max]])) +
     geom_point(data = dataset %>% dplyr::filter(simul.data != "TCGA.KIRC")) +
     geom_errorbar(data = dataset %>% dplyr::filter(simul.data == "TCGA.KIRC"),
-                  aes(ymin = min_auc, ymax = max_auc),
+                  aes(ymin = .data[[y_min]], ymax = .data[[y_max]]),
                   width = 0,
                   linewidth = 1) +
     geom_point(data = dataset %>% dplyr::filter(simul.data == "TCGA.KIRC"),
@@ -805,7 +811,7 @@ plotres = function(dataset, rel) {
                                   "Other 13 selected \nTCGA datasets")) +
     facet_grid(nDE + nSample ~ Methods, labeller = label_parsed) +
     theme_bw() +
-    labs(y = y, col = "Dataset selection", x = "Median dispersion") +
+    labs(y = y_lab, col = "Dataset selection", x = "Median dispersion") +
     theme(legend.position = "top",
           strip.background = element_rect(fill = "grey90"))
   return(p)
