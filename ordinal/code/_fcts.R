@@ -131,7 +131,7 @@ generate_simuldat_estimdat_statesdat_fct = function(nrep,
   
   if (ground_truth == "same_probs") {
     probs1 = probs2
-    setting = setting %>% mutate_at(vars(contains("group1_h")), ~NA)
+    setting = setting %>% mutate(across(contains("group1_h"), ~NA))
   }
   
   # generate data and run methods

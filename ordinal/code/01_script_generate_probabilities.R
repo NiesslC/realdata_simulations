@@ -43,10 +43,15 @@ user_group2 = list(pC31 = c(rep(1/3, 3)),
 usefornull1 = !duplicated(names(user_group2))
 
 kmax = max(sapply(user_group1, length))
-user_group1 = as.data.frame(stri_list2matrix(user_group1, byrow = TRUE))
-user_group1 = user_group1 %>% mutate_if(is.character, as.numeric)
-user_group2 = as.data.frame(stri_list2matrix(user_group2, byrow = TRUE))
-user_group2 = user_group2 %>% mutate_if(is.character, as.numeric)
+user_group1 = user_group1 %>%
+  stri_list2matrix(byrow = TRUE) %>%
+  as.data.frame() %>%
+  mutate(across(where(is.character), as.numeric))
+
+user_group2 = user_group2 %>%
+  stri_list2matrix(byrow = TRUE) %>%
+  as.data.frame() %>%
+  mutate(across(where(is.character), as.numeric))
 
 param_user = cbind(user_group1, user_group2)
 
@@ -100,24 +105,25 @@ param_nejm = param_nejm %>% filter(grepl("yes|Yes", Include))
 param_nejm = param_nejm %>% dplyr::rename(settingname = Key, input_mode = `number format`)
 # transform probabilities
 param_nejm = param_nejm %>%
-  mutate_at(vars(starts_with("group1_h")), ~case_when(
-    input_mode == "percentage" ~ . / 100,
-    input_mode == "absolute" ~ . / group1_n
-    )) %>%
-  mutate_at(vars(starts_with("group2_h")), ~case_when(
-    input_mode == "percentage" ~ . / 100,
-    input_mode == "absolute" ~ . / group2_n
+  mutate(
+    across(starts_with("group1_h"), ~ case_when(
+      input_mode == "percentage" ~ . / 100,
+      input_mode == "absolute" ~ . / group1_n
+    )),
+    across(starts_with("group2_h"), ~ case_when(
+      input_mode == "percentage" ~ . / 100,
+      input_mode == "absolute" ~ . / group2_n
     ))
+  )
 # check that no zero probabilities
-stopifnot(nrow(param_nejm %>% filter_at(vars(starts_with("group1_h")),
-                                        any_vars(. == 0))) == 0)
-stopifnot(nrow(param_nejm %>% filter_at(vars(starts_with("group2_h")),
-                                        any_vars(. == 0))) == 0)
+stopifnot(nrow(param_nejm %>% filter(if_any(starts_with("group1_h"), ~ . == 0))) == 0)
+stopifnot(nrow(param_nejm %>% filter(if_any(starts_with("group2_h"), ~ . == 0))) == 0)
 # check that probabilities add up to 1
-param_nejm = param_nejm %>% mutate(sum1 = rowSums(across(starts_with("group1_h")), na.rm = TRUE))
-param_nejm = param_nejm %>% mutate(sum2 = rowSums(across(starts_with("group2_h")), na.rm = TRUE))
-param_nejm = param_nejm %>% mutate_at(vars(starts_with("group1_h")), ~ . / sum1)
-param_nejm = param_nejm %>% mutate_at(vars(starts_with("group2_h")), ~ . / sum2)
+param_nejm = param_nejm %>%
+  mutate(sum1 = rowSums(across(starts_with("group1_h")), na.rm = TRUE),
+         sum2 = rowSums(across(starts_with("group2_h")), na.rm = TRUE),
+         across(starts_with("group1_h"), ~ . / sum1),
+         across(starts_with("group2_h"), ~ . / sum2))
 stopifnot(all(
   param_nejm %>%
     mutate(sum1 = rowSums(across(starts_with("group1_h")), na.rm = TRUE)) %>%

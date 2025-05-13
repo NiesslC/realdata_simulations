@@ -111,11 +111,12 @@ warnings_info = performdat %>%
 
 # Rejection % and number of repetitions without NAs there are
 performdat = performdat %>%
-  group_by_at(vars(settingname, ground_truth, source, nsample, k,
-                   starts_with("group1_h"), starts_with("group2_h"))) %>%
-  summarise_at(vars(starts_with("p_")),
-               list(reject = ~ sum(. <= 0.05, na.rm = TRUE) / sum(!is.na(.)),
-                    n_rep_narm = ~sum(!is.na(.)))) %>%
+  group_by(across(c(settingname, ground_truth, source, nsample, k,
+                    starts_with("group1_h"), starts_with("group2_h")))) %>%
+  summarise(across(starts_with("p_"),
+                   list(reject = ~ sum(. <= 0.05, na.rm = TRUE) / sum(!is.na(.)),
+                        n_rep_narm = ~ sum(!is.na(.))),
+                   .names = "{.col}_{.fn}")) %>%
   ungroup()
 
 # Add warnings_info
