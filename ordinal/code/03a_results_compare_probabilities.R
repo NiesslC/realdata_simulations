@@ -35,34 +35,11 @@ param_user_long = melt(param_user,
 
 # Plots and tables =================================================================================
 # Number of categories, samples --------------------------------------------------------------------
-table(param_nejm$k)
-table(param_user$k)
 sum(grepl("Rankin", param_nejm$outcome))
 sort(param_nejm$group1_n)
 sort(param_nejm$group2_n)
 
 # Probability distribution -------------------------------------------------------------------------
-p_nejm = ggplot(param_nejm_long, aes(x = h, y = prob, fill = group)) +
-  geom_bar(stat = "identity", position = "dodge") +
-  facet_wrap(~settingname, nrow = 1) +
-  guides(fill = "none")
-
-p_user = ggplot(param_user_long, aes(x = h, y = prob, fill = group)) +
-  geom_bar(stat = "identity", position = "dodge") +
-  facet_wrap(~settingname, nrow = 1) +
-  guides(fill = "none")
-
-nejm3 = p_nejm %+% subset(param_nejm_long, k == 3)
-nejm4 = p_nejm %+% subset(param_nejm_long, k == 4)
-nejm5 = p_nejm %+% subset(param_nejm_long, k == 5)
-nejm6 = p_nejm %+% subset(param_nejm_long, k == 6)
-nejm7 = p_nejm %+% subset(param_nejm_long, k == 7)
-nejm8 = p_nejm %+% subset(param_nejm_long, k == 8)
-
-user3 = p_user %+% subset(param_user_long, k == 3)
-user5 = p_user %+% subset(param_user_long, k == 5)
-user7 = p_user %+% subset(param_user_long, k == 7)
-
 ggplot(param_user_long, aes(x = h, y = prob, fill = group)) +
   geom_bar(stat = "identity", position = "dodge") +
   facet_wrap(~settingname, scales = "free_x") +

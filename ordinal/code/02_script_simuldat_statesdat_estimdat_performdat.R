@@ -35,56 +35,8 @@ nsample = 2 * c(30, 60, 100, 150, 300)  # total number of observations
 # Generate simulated datasets, estimates datasets, and states datasets -----------------------------
 Sys.setenv(OMP_NUM_THREADS = "1")
 
-## Researcher-defined probabilities, null case (same probabilities) --------------------------------
-param_user_null = param_user %>% filter(usefornull == TRUE)  # not all settings are used for null case
-param = expand.grid(nsample = nsample, setting_row = 1:nrow(param_user_null))
-
-n_cores = 10
-cl = makeCluster(n_cores)
-registerDoParallel(cl)
-
-estimdat_user_null = foreach(j = 1:nrow(param),
-                             .combine = bind_rows,
-                             .packages = c("dplyr", "rms", "purrr")) %dopar% {
-  generate_simuldat_estimdat_statesdat_fct(
-    nrep = nrep,
-    seed = 1698389247,
-    setting = param_user_null[param$setting_row[j], ],
-    nsample = param$nsample[j],
-    ground_truth = "same_probs"
-  )
-                             }
-
-stopCluster(cl)
-save(estimdat_user_null, file = "./ordinal/results/rdata/estimdat_alluser_null.RData")
-rm(param_user_null, param)
-
-## Real-data-based probabilities (NEJM sample), null case (same probabilities) ---------------------
-param = expand.grid(nsample = nsample, setting_row = 1:nrow(param_nejm))
-
-n_cores = 10
-cl = makeCluster(n_cores)
-registerDoParallel(cl)
-
-estimdat_nejm_null = foreach(j = 1:nrow(param),
-                             .combine = bind_rows,
-                             .packages = c("dplyr", "rms", "purrr")) %dopar% {
-  generate_simuldat_estimdat_statesdat_fct(
-    nrep = nrep,
-    seed = 1698389214,
-    setting = param_nejm[param$setting_row[j], ],
-    nsample = param$nsample[j],
-    ground_truth = "same_probs"
-  )
-                             }
-
-stopCluster(cl)
-save(estimdat_nejm_null, file = "./ordinal/results/rdata/estimdat_allnejm_null.RData")
-rm(param)
-
 ## Researcher-defined probabilities, effect case (different probabilities) -------------------------
-param_user_effect = param_user %>% filter(useforpower == TRUE)  # not all settings are used for effect/power case
-param = expand.grid(nsample = nsample, setting_row = 1:nrow(param_user_effect))
+param = expand.grid(nsample = nsample, setting_row = 1:nrow(param_user))
 
 n_cores = 10
 cl = makeCluster(n_cores)
@@ -96,7 +48,7 @@ estimdat_user_effect = foreach(j = 1:nrow(param),
   generate_simuldat_estimdat_statesdat_fct(
     nrep = nrep,
     seed = 1697042394,
-    setting = param_user_effect[param$setting_row[j], ],
+    setting = param_user[param$setting_row[j], ],
     nsample = param$nsample[j],
     ground_truth = "diff_probs"
   )
@@ -104,7 +56,7 @@ estimdat_user_effect = foreach(j = 1:nrow(param),
 
 stopCluster(cl)
 save(estimdat_user_effect, file = "./ordinal/results/rdata/estimdat_alluser_effect.RData")
-rm(param_user_effect, param)
+rm(param)
 
 ## Real-data-based probabilities (NEJM sample), effect case (different probabilities) --------------
 param = expand.grid(nsample = nsample, setting_row = 1:nrow(param_nejm))
@@ -131,16 +83,11 @@ rm(param)
 
 # Generate performance measures dataset ------------------------------------------------------------
 # Combine all results
-estimdat_user_null = estimdat_user_null %>%
-  mutate(ground_truth = "same_probs", source = "user")
 estimdat_user_effect = estimdat_user_effect %>%
   mutate(ground_truth = "diff_probs", source = "user")
-estimdat_nejm_null = estimdat_nejm_null %>%
-  mutate(ground_truth = "same_probs", source = "nejm")
 estimdat_nejm_effect = estimdat_nejm_effect %>%
   mutate(ground_truth = "diff_probs", source = "nejm")
-performdat = bind_rows(estimdat_user_null, estimdat_nejm_null,
-                       estimdat_user_effect, estimdat_nejm_effect)
+performdat = bind_rows(estimdat_user_effect, estimdat_nejm_effect)
 
 # Summarize warnings for each DGM
 warnings_info = performdat %>%
@@ -168,16 +115,8 @@ performdat = full_join(performdat, warnings_info,
 rm(warnings_info)
 
 # Check that all settings are included
-stopifnot(length(unique(performdat %>%
-                          filter(ground_truth == "same_probs") %>%
-                          .$settingname)) ==
-            (length(unique(param_user[param_user$usefornull == TRUE, ]$settingname)) +
-               length(unique(param_nejm$settingname))))
-
-stopifnot(length(unique(performdat %>%
-                          filter(ground_truth == "diff_probs") %>%
-                          .$settingname)) ==
-            (length(unique(param_user[param_user$useforpower == TRUE, ]$settingname)) +
+stopifnot(length(unique(performdat %>% .$settingname)) ==
+            (length(unique(param_user$settingname)) +
                length(unique(param_nejm$settingname))))
 
 # Make sure that all methods are based on the same nrep, then only remove all but one nrep variables
@@ -189,11 +128,8 @@ performdat = performdat %>%
 # Make sure that each DGM corresponds to exactly one row
 stopifnot(nrow(performdat) ==
             (nrow(estimdat_nejm_effect) +
-               nrow(estimdat_nejm_null) +
-               nrow(estimdat_user_null) +
                nrow(estimdat_user_effect)) / nrep)
-rm(estimdat_user_null, estimdat_nejm_null, estimdat_user_effect, estimdat_nejm_effect)
-
+rm(estimdat_user_effect, estimdat_nejm_effect)
 
 # Reshape dataset
 performdat = melt(performdat,

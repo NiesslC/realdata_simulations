@@ -27,11 +27,6 @@ performdat = full_join(performdat, bind_rows(param_user, param_nejm) %>%
                                 asymp_var1, asymp_var2, kl1, kl2),
                        by = c("settingname", "k"))
 
-# Only consider settings with 7 categories
-performdat = performdat %>% filter(k == 7)
-param_nejm = param_nejm %>% filter(k == 7)
-param_user = param_user %>% filter(k == 7)
-
 # Long format
 param_nejm_long = melt(param_nejm,
                        measure.vars = c(paste0("group1_h", 1:8), paste0("group2_h", 1:8)),
@@ -75,14 +70,6 @@ performdat %>%
   ggplot(aes(x = factor(method_label), y = reject, col = source)) +
   geom_boxplot() +
   facet_wrap(~nsample)
-
-performdat %>%
-  filter(ground_truth == "same_probs") %>%
-  ggplot(aes(x = factor(method_label), y = reject, col = source)) +
-  geom_hline(yintercept = 0.05, linetype = "dashed") +
-  geom_boxplot() +
-  facet_wrap(~nsample)
-
 
 ## Number of expected observations per category ----------------------------------------------------
 performdat = performdat %>%
