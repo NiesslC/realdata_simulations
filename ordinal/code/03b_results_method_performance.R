@@ -42,6 +42,49 @@ param_user_long = melt(param_user,
          h = str_split(variable, "_h", simplify = TRUE)[, 2]) %>%
   drop_na(prob)
 
+# COMPARE PROBABILITIES ----------------------------------------------------------------------------
+## Some statistics for NEJM sample -----------------------------------------------------------------
+# Number of RCTs where the outcome is the modified Rankin Score
+sum(grepl("Rankin", param_nejm$outcome))  # 12
+
+# Numbers of individuals in each group
+sort(param_nejm$group1_n)
+sort(param_nejm$group2_n)
+
+## Probability distribution ------------------------------------------------------------------------
+ggplot(param_user_long, aes(x = h, y = prob, fill = group)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  facet_wrap(~settingname, scales = "free_x") +
+  guides(fill = "none")
+
+ggplot(param_nejm_long, aes(x = h, y = prob, fill = group)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  facet_wrap(~settingname, scales = "free_x") +
+  guides(fill = "none")
+
+## Cumulative distribution -------------------------------------------------------------------------
+param_user_long %>%
+  group_by(settingname, group) %>%
+  arrange(h) %>%
+  mutate(cumprob = cumsum(prob)) %>%
+  ungroup() %>%
+  arrange(settingname, group, h) %>%
+  ggplot(aes(x = h, y = cumprob, col = group, group = group)) +
+  geom_point() +
+  geom_line() +
+  facet_wrap(~settingname, scales = "free_x")
+
+param_nejm_long %>%
+  group_by(settingname, group) %>%
+  arrange(h) %>%
+  mutate(cumprob = cumsum(prob)) %>%
+  ungroup() %>%
+  arrange(settingname, group, h) %>%
+  ggplot(aes(x = h, y = cumprob, col = group, group = group)) +
+  geom_point() +
+  geom_line() +
+  facet_wrap(~settingname, scales = "free_x")
+
 # CHECK RESULTS & DATA CHARACTERISTICS -------------------------------------------------------------
 ## Number of simulated datasets --------------------------------------------------------------------
 performdat %>%
