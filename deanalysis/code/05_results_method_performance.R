@@ -3,7 +3,7 @@
 #   real data" by Christina Sauer, F. Julian D. Lange, Maria Thurow, Ina
 #   Dormuth, and Anne-Laure Boulesteix
 # 
-# File name:   05b_results_method_performance.R
+# File name:   05_results_method_performance.R
 # Author:      Christina Sauer
 # Description: Evaluate performance results of methods and generate plots and tables   
 # Notes:     

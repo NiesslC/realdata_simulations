@@ -3,7 +3,7 @@
 #   real data" by Christina Sauer, F. Julian D. Lange, Maria Thurow, Ina
 #   Dormuth, and Anne-Laure Boulesteix
 # 
-# File name:   03b_results_method_performance.R
+# File name:   03_results_method_performance.R
 # Author:      Christina Sauer
 # Description: Script to evaluate simulation results and generate plots and tables
 # Notes:     
