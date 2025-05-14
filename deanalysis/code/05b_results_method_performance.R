@@ -25,13 +25,12 @@ mean.total_all = mean.total_all %>% filter(nsample >= 10)
 
 ## Get simulation results --------------------------------------------------------------------------
 load("./deanalysis/results/rdata/performdat_degenes.RData")
-load("./deanalysis/results/rdata/performdat_nodegenes.RData")
 performdat_degenes = performdat_degenes %>%
   mutate(nDE = factor(nDE, levels = c("pDE = 5%", "pDE = 10%", "pDE = 30%", "pDE = 60%")),
          Methods = factor(Methods, levels = c("edgeR", "edgeR.ql", "edgeR.rb",
                                               "DESeq.pc", "DESeq2", "voom.tmm",
                                               "voom.qn", "voom.sw", "ROTS",
-                                              "BaySeq", "PoissonSeq", "SAMseq")))
+                                              "BaySeq", "PoissonSeq")))
 
 # Add info on number of samples, median dispersion, and median mean
 mean_disp_info = full_join(
@@ -50,7 +49,6 @@ mean_disp_info = full_join(
   ungroup()
 
 performdat_degenes = full_join(performdat_degenes, mean_disp_info, by = "simul.data")
-performdat_nodegenes = full_join(performdat_nodegenes, mean_disp_info, by = "simul.data")
 rm(mean_disp_info)
 
 # Calculate median performance values
@@ -58,19 +56,8 @@ performdat_degenes_median = performdat_degenes %>%
   group_by(Methods, simul.data, simul.data_mean_median, simul.data_disp_median,
            nSample, mode, nDE) %>%
   summarise(median_auc = median(AUC),
-            median_tpr = median(TPR),
-            median_truefdr = median(trueFDR, na.rm = TRUE),
             min_auc = min(AUC),
-            min_tpr = min(TPR),
-            min_truefdr = ifelse(any(!is.na(trueFDR)), min(trueFDR, na.rm = TRUE), NA),
-            max_auc = max(AUC),
-            max_tpr = max(TPR),
-            max_truefdr = ifelse(any(!is.na(trueFDR)), max(trueFDR, na.rm = TRUE), NA))
-
-performdat_nodegenes_median = performdat_nodegenes %>%
-  group_by(Methods, simul.data, simul.data_mean_median, simul.data_disp_median,
-           nSample, mode) %>%
-  summarise(median_fpc = median(FPC, na.rm = TRUE))
+            max_auc = max(AUC))
 
 # CHECK RESULTS & DATA CHARACTERISTICS -------------------------------------------------------------
 ## Check distribution of mean and dispersion in datasets -------------------------------------------
@@ -92,22 +79,9 @@ disp.total_all %>%
 ## Check number of NAs in DESeq.pc & DESeq2 --------------------------------------------------------
 performdat_degenes %>% group_by(Methods) %>% summarise(sum = sum(nas))
 
-## Check NAs in trueFDR ----------------------------------------------------------------------------
+## Check NAs ---------------------------------------------------------------------------------------
 # Make sure there are no NAs in other performance measures
-stopifnot(sum(is.na(performdat_degenes$AUC)) == 0 & 
-            sum(is.na(performdat_degenes$TPR)) == 0 & 
-            sum(is.na(performdat_nodegenes$FPC)) == 0)
-# Inspect NAs of trueFDR
-performdat_degenes %>%
-  group_by(Methods, simul.data, nSample, mode, nDE) %>%
-  summarise(sumna = sum(is.na(trueFDR))) %>%
-  mutate(simul.data = gsub("TCGA.", "", simul.data)) %>%
-  filter(sumna > 0) %>%
-  ggplot(aes(fill = Methods, y = sumna, x = simul.data)) +
-  geom_bar(stat = "identity", position = "dodge") +
-  facet_grid(mode ~ nSample ~ nDE) +
-  theme(legend.position = "bottom",
-        axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+stopifnot(sum(is.na(performdat_degenes$AUC)) == 0)
 
 ## Association between absolute performance and dataset characteristics ----------------------------
 
@@ -123,36 +97,10 @@ p_base = performdat_degenes %>%
         axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
 # AUC
 p_base %+% list(aes(y = AUC))
-# TPR
-p_base %+% list(aes(y = TPR))
-# trueFDR
-p_base %+% list(aes(y = trueFDR))
-# FPC
-performdat_nodegenes %>%
-  filter(nSample == 3 & mode == "D") %>%
-  ggplot(aes(col = simul.data, x = simul.data_disp_median, y = FPC)) +
-  geom_boxplot() +
-  facet_wrap(~Methods, ncol = 3, scales = "free_y") +
-  labs(x = "", y = "") +
-  theme(legend.position = "bottom",
-        axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
 
 #### Mean ------------------------------------------------------------------------------------------
 # AUC
 p_base %+% list(aes(x = simul.data_mean_median, y = AUC))
-# TPR
-p_base %+% list(aes(x = simul.data_mean_median, y = TPR))
-# trueFDR
-p_base %+% list(aes(x = simul.data_mean_median, y = trueFDR))
-# FPC
-performdat_nodegenes %>%
-  filter(nSample == 3 & mode == "D") %>%
-  ggplot(aes(col = simul.data, x = simul.data_mean_median, y = FPC)) +
-  geom_boxplot() +
-  facet_wrap(~Methods, ncol = 3, scales = "free_y") +
-  labs(x = "", y = "") +
-  theme(legend.position = "bottom",
-        axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
 
 ### Performance vs. median dispersion and mean (median performance measure) ------------------------
 #### Dispersion ------------------------------------------------------------------------------------
@@ -165,18 +113,6 @@ p_base = ggplot(performdat_degenes_median,
   facet_grid(~ nDE ~ nSample ~ mode)
 # AUC
 p_base %+% list(aes(y = median_auc))
-# TPR
-p_base %+% list(aes(y = median_tpr))
-# trueFDR
-p_base %+% list(aes(y = median_truefdr))
-# FPC
-ggplot(performdat_nodegenes_median,
-       aes(y = median_fpc, col = Methods, group = Methods, x = simul.data_disp_median)) +
-  geom_vline(xintercept = unique(performdat_nodegenes$simul.data_disp_median[performdat_nodegenes$simul.data == "TCGA.KIRC"]),
-             linetype = "dotted") +
-  geom_point() +
-  geom_line() +
-  facet_grid(~ nSample ~ mode, scales = "free")
 
 
 #### Mean ------------------------------------------------------------------------------------------
@@ -189,19 +125,6 @@ p_base = ggplot(performdat_degenes_median,
   facet_grid(~ nDE ~ nSample ~ mode)
 # AUC
 p_base %+% list(aes(y = median_auc))
-# TPR
-p_base %+% list(aes(y = median_tpr))
-# trueFDR
-p_base %+% list(aes(y = median_truefdr))
-# FPC
-ggplot(performdat_nodegenes_median,
-       aes(y = median_fpc, col = Methods, group = Methods, x = simul.data_mean_median)) +
-  geom_vline(xintercept = unique(performdat_nodegenes$simul.data_mean_median[performdat_nodegenes$simul.data == "TCGA.KIRC"]),
-             linetype = "dotted") +
-  geom_point() +
-  geom_line() +
-  facet_grid(~ nSample ~ mode, scales = "free")
-
 
 
 ## Association between relative performance and dataset characteristics ----------------------------
@@ -213,9 +136,6 @@ topranking = topranking %>%
   group_by(simul.data, nSample, mode, nDE) %>%
   #mutate(relbestauc = 1 - (median_auc / max(median_auc))) %>%
   mutate(diffbestauc = max(median_auc) - median_auc,
-         diffbesttpr = max(median_tpr) - median_tpr,
-         rank_tpr = rank(-median_tpr, ties.method = "first"),
-         rank_fdr = rank(median_truefdr, ties.method = "first"),
          topmethod = diffbestauc < 0.03,
          simul.data = factor(simul.data, levels = topranking %>%
                                ungroup() %>%

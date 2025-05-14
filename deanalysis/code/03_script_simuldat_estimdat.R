@@ -34,32 +34,14 @@ param.fig2$rep.end = 50
 param.fig2$AnalysisMethods_seed_no = c("edgeR", "DESeq.pc", "DESeq2", "voom.tmm",
                                        "voom.qn", "voom.sw")
 param.fig2$AnalysisMethods_seed_yes = c("edgeR.ql", "edgeR.rb", "ROTS", "BaySeq",
-                                        "PoissonSeq", "SAMseq")
+                                        "PoissonSeq")  # SAMseq comment
 param.fig2$nsample = c(3, 10)
 param.fig2$nDE = c(500, 1000, 3000, 6000)
 param.fig2$fraction.upregulated = 0.5
 param.fig2$disp.Types = "same"
-param.fig2$modes = c("D", "R", "OS")
+param.fig2$modes = c("D")  #param.fig2$modes = c('D','R','OS')
 #param.fig2$rowType = c("AUC", "TPR", "trueFDR")  # not used in this script
 #param.fig2$fixedfold = FALSE  # Default; not explicitly specified in Baik et al. code
-
-## Figure 3 in Baik et al. -------------------------------------------------------------------------
-param.fig3 = list()
-param.fig3$nvar = 10000
-param.fig3$rep.end = 50
-#param.fig3$AnalysisMethods =c('edgeR','edgeR.ql','edgeR.rb','DESeq.pc','DESeq2','voom.tmm','voom.qn','voom.sw','ROTS','BaySeq','PoissonSeq','SAMseq')
-param.fig3$AnalysisMethods_seed_no = c("edgeR", "DESeq.pc", "DESeq2", "voom.tmm",
-                                       "voom.qn", "voom.sw")
-param.fig3$AnalysisMethods_seed_yes = c("edgeR.ql", "edgeR.rb", "ROTS", "BaySeq",
-                                        "PoissonSeq", "SAMseq")
-param.fig3$nsample = c(3, 10)
-param.fig3$nDE = 0
-param.fig3$fraction.upregulated = 0.5
-param.fig3$disp.Types = "same"
-param.fig3$modes = c("D", "R", "OS")
-#param.fig3$fixedfold = FALSE # Default; not explicitly specified in Baik et al. Code
-param.fig3$fpc = TRUE  # in runSimulationAnalysis() documentation: "[...] Only used for real data analysis." -> However, this is not real data analysis but simulation with DE 0
-
 
 dataset.dir = "./deanalysis/data/"
 analysis.dir = "./deanalysis/results/rdata/"
@@ -81,20 +63,6 @@ for (i in 1:length(data.types.names)) {
 }
 rm(i)
 
-## Generate data according to Figure 3 in Baik et al. (settings with = 0 DE genes) -----------------
-set.seed(19578)
-for (i in 1:length(data.types.names)) {
-  GenerateSyntheticSimulation_new(working.dir = paste0(dataset.dir, "simulation_nodegenes/"),
-                                  data.types = data.types.names[i],
-                                  rep.end = param.fig3$rep.end,
-                                  nsample = param.fig3$nsample,
-                                  nvar = param.fig3$nvar,
-                                  nDE = param.fig3$nDE,
-                                  fraction.upregulated = param.fig3$fraction.upregulated,
-                                  disp.Types = param.fig3$disp.Types,
-                                  modes = param.fig3$modes)
-}
-rm(i)
 
 # Generate estimates datasets ----------------------------------------------------------------------
 Sys.setenv(OMP_NUM_THREADS = "1")
@@ -117,22 +85,6 @@ future.apply::future_lapply(1:length(data.types.names), function(i) {
                         para = list())
   })
 
-plan(multisession, workers = length(data.types.names))  # 14
-future.apply::future_lapply(1:length(data.types.names), function(i) {
-  runSimulationAnalysis(working.dir = paste0(getwd(), "/deanalysis/data/simulation_nodegenes/"),  # have to use whole path, otherwise error
-                        output.dir = paste0(analysis.dir, "rdata_nodegenes/"),
-                        real = FALSE,
-                        data.types = data.types.names[i],
-                        rep.end = param.fig3$rep.end,
-                        nsample = param.fig3$nsample,
-                        nDE = param.fig3$nDE,
-                        fpc = param.fig3$fpc,
-                        disp.Types = param.fig3$disp.Types,
-                        modes = param.fig3$modes,
-                        AnalysisMethods = param.fig3$AnalysisMethods_seed_no,
-                        para = list())
-  })
-
 
 ## Methods changing state of the random number generator -------------------------------------------
 ### edgeR.ql ---------------------------------------------------------------------------------------
@@ -152,22 +104,6 @@ future.apply::future_lapply(1:length(data.types.names), function(i) {
                         para = list())
   }, future.seed = 19554)
 
-plan(multisession, workers = length(data.types.names))  # 14
-future.apply::future_lapply(1:length(data.types.names), function(i) {
-  runSimulationAnalysis(working.dir = paste0(getwd(), "/deanalysis/data/simulation_nodegenes/"),  # have to use whole path, otherwise error
-                        output.dir = paste0(analysis.dir, "rdata_nodegenes/"),
-                        real = FALSE,
-                        data.types = data.types.names[i],
-                        rep.end = param.fig3$rep.end,
-                        nsample = param.fig3$nsample,
-                        nDE = param.fig3$nDE,
-                        fpc = param.fig3$fpc,
-                        disp.Types = param.fig3$disp.Types,
-                        modes = param.fig3$modes,
-                        AnalysisMethods = param.fig3$AnalysisMethods_seed_yes[1],  # "edgeR.ql"
-                        para = list())
-  }, future.seed = 19580)
-
 
 ### edgeR.rb ---------------------------------------------------------------------------------------
 plan(multisession, workers = length(data.types.names))  # 14
@@ -185,22 +121,6 @@ future.apply::future_lapply(1:length(data.types.names), function(i) {
                         AnalysisMethods = param.fig2$AnalysisMethods_seed_yes[2],  # "edgeR.rb"
                         para = list())
   }, future.seed = 19555)
-
-plan(multisession, workers = length(data.types.names))  # 14
-future.apply::future_lapply(1:length(data.types.names), function(i) {
-  runSimulationAnalysis(working.dir = paste0(getwd(), "/deanalysis/data/simulation_nodegenes/"),  # have to use whole path, otherwise error
-                        output.dir = paste0(analysis.dir, "rdata_nodegenes/"),
-                        real = FALSE,
-                        data.types = data.types.names[i],
-                        rep.end = param.fig3$rep.end,
-                        nsample = param.fig3$nsample,
-                        nDE = param.fig3$nDE,
-                        fpc = param.fig3$fpc,
-                        disp.Types = param.fig3$disp.Types,
-                        modes = param.fig3$modes,
-                        AnalysisMethods = param.fig3$AnalysisMethods_seed_yes[2], # "edgeR.rb"
-                        para = list())
-  }, future.seed = 19581)
 
 
 ### ROTS -------------------------------------------------------------------------------------------
@@ -220,22 +140,6 @@ future.apply::future_lapply(1:length(data.types.names), function(i) {
                         para = list())
   }, future.seed = 19556)
 
-plan(multisession, workers = length(data.types.names))  # 14
-future.apply::future_lapply(1:length(data.types.names), function(i) {
-  runSimulationAnalysis(working.dir = paste0(getwd(), "/deanalysis/data/simulation_nodegenes/"),  # have to use whole path, otherwise error
-                        output.dir = paste0(analysis.dir, "rdata_nodegenes/"),
-                        real = FALSE,
-                        data.types = data.types.names[i],
-                        rep.end = param.fig3$rep.end,
-                        nsample = param.fig3$nsample,
-                        nDE = param.fig3$nDE,
-                        fpc = param.fig3$fpc,
-                        disp.Types = param.fig3$disp.Types,
-                        modes = param.fig3$modes,
-                        AnalysisMethods = param.fig3$AnalysisMethods_seed_yes[3],  # "ROTS"
-                        para = list())
-  }, future.seed = 19582)
-
 
 ### BaySeq -----------------------------------------------------------------------------------------
 plan(multisession, workers = length(data.types.names))  # 14
@@ -254,22 +158,6 @@ future.apply::future_lapply(1:length(data.types.names), function(i) {
                         para = list())
   }, future.seed = 19557)
 
-plan(multisession, workers = length(data.types.names))  # 14
-future.apply::future_lapply(1:length(data.types.names), function(i) {
-  runSimulationAnalysis(working.dir = paste0(getwd(), "/deanalysis/data/simulation_nodegenes/"),  # have to use whole path, otherwise error
-                        output.dir = paste0(analysis.dir, "rdata_nodegenes/"),
-                        real = FALSE,
-                        data.types = data.types.names[i],
-                        rep.end = param.fig3$rep.end,
-                        nsample = param.fig3$nsample,
-                        nDE = param.fig3$nDE,
-                        fpc = param.fig3$fpc,
-                        disp.Types = param.fig3$disp.Types,
-                        modes = param.fig3$modes,
-                        AnalysisMethods = param.fig3$AnalysisMethods_seed_yes[4],  # "BaySeq"
-                        para = list())
-  }, future.seed = 19583)
-
 
 ### PoissonSeq -------------------------------------------------------------------------------------
 plan(multisession, workers = length(data.types.names))  # 14
@@ -287,19 +175,3 @@ future.apply::future_lapply(1:length(data.types.names), function(i) {
                         AnalysisMethods = param.fig2$AnalysisMethods_seed_yes[5],  # "PoissonSeq"
                         para = list())
   }, future.seed = 19558)
-
-plan(multisession, workers = length(data.types.names)) # 14
-future.apply::future_lapply(1:length(data.types.names), function(i) {
-  runSimulationAnalysis(working.dir = paste0(getwd(), "/deanalysis/data/simulation_nodegenes/"),  # have to use whole path, otherwise error
-                        output.dir = paste0(analysis.dir, "rdata_nodegenes/"),
-                        real = FALSE,
-                        data.types = data.types.names[i],
-                        rep.end = param.fig3$rep.end,
-                        nsample = param.fig3$nsample,
-                        nDE = param.fig3$nDE,
-                        fpc = param.fig3$fpc,
-                        disp.Types = param.fig3$disp.Types,
-                        modes = param.fig3$modes,
-                        AnalysisMethods = param.fig3$AnalysisMethods_seed_yes[5],  # "PoissonSeq"
-                        para = list())
-  }, future.seed = 19584)
