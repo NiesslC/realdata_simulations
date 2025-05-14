@@ -201,7 +201,8 @@ param_user = param_user %>%
   rowwise() %>%
   mutate(maxdiff_or = max(c_across(contains("_oddsratio_")), na.rm = TRUE) - 
            min(c_across(contains("_oddsratio_")), na.rm = TRUE),
-         mean_or = mean(c_across(contains("_oddsratio_")), na.rm = TRUE))
+         mean_or = mean(c_across(contains("_oddsratio_")), na.rm = TRUE)) %>%
+  ungroup()
 rm(param_user_long_or)
 
 ### Real-data-based parameters (NEJM sample) -------------------------------------------------------
@@ -233,7 +234,8 @@ param_nejm = param_nejm %>%
   rowwise() %>%
   mutate(maxdiff_or = max(c_across(contains("_oddsratio_")), na.rm = TRUE) -
            min(c_across(contains("_oddsratio_")), na.rm = TRUE),
-         mean_or = mean(c_across(contains("_oddsratio_")), na.rm = TRUE))
+         mean_or = mean(c_across(contains("_oddsratio_")), na.rm = TRUE)) %>%
+  ungroup()
 rm(param_nejm_long_or)
 
 ## KL, relative effect, and asymptotic variance ----------------------------------------------------
