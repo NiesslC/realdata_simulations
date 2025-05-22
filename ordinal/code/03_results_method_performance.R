@@ -178,7 +178,7 @@ bind_rows(param_user, param_nejm) %>%
   ggplot(aes(x = source, y = abs(0.5 - rel_effect), col = source)) +
   geom_point(data = . %>% filter(source == "Researcher-specified")) +
   geom_point(data = . %>% filter(source == "Real-data-based"),
-             position = position_jitter(seed = 2, width = 0.04)) +
+             position = position_jitter(seed = 20473225, width = 0.04)) +
   scale_color_manual(values = cols, guide = "none") +
   xlim("Researcher-specified", "Real-data-based") +
   labs(x = "Type of parameter specification", y = expression(group("|", italic(RE) - 0.5, "|")))
