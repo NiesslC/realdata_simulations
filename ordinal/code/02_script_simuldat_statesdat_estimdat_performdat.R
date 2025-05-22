@@ -13,6 +13,9 @@
 library(rms)
 library(reshape2)
 library(purrr)
+library(parallel)
+library(doParallel)
+library(foreach)
 library(dplyr)
 
 source("./ordinal/code/_fcts.R")
@@ -30,35 +33,52 @@ nrep = 10000  # number of simulation repetitions (required to achieve a MCSE of 
 nsample = 2 * c(30, 60, 100, 150, 300)  # total number of observations
 
 # Generate simulated datasets, estimates datasets, and states datasets -----------------------------
+Sys.setenv(OMP_NUM_THREADS = "1")
+
 ## Researcher-defined probabilities, null case (same probabilities) --------------------------------
 param_user_null = param_user %>% filter(usefornull == TRUE)  # not all settings are used for null case
 param = expand.grid(nsample = nsample, setting_row = 1:nrow(param_user_null))
 
-estimdat_user_null = bind_rows(lapply(1:nrow(param), FUN = function(j) {
+n_cores = 10
+cl = makeCluster(n_cores)
+registerDoParallel(cl)
+
+estimdat_user_null = foreach(j = 1:nrow(param),
+                             .combine = bind_rows,
+                             .packages = c("dplyr", "rms", "purrr")) %dopar% {
   generate_simuldat_estimdat_statesdat_fct(
     nrep = nrep,
     seed = 1698389247,
     setting = param_user_null[param$setting_row[j], ],
     nsample = param$nsample[j],
     ground_truth = "same_probs"
-    )
-  }))
+  )
+                             }
 
+stopCluster(cl)
 save(estimdat_user_null, file = "./ordinal/results/rdata/estimdat_alluser_null.RData")
 rm(param_user_null, param)
 
 ## Real-data-based probabilities (NEJM sample), null case (same probabilities) ---------------------
 param = expand.grid(nsample = nsample, setting_row = 1:nrow(param_nejm))
-estimdat_nejm_null = bind_rows(lapply(1:nrow(param), FUN = function(j) {
+
+n_cores = 10
+cl = makeCluster(n_cores)
+registerDoParallel(cl)
+
+estimdat_nejm_null = foreach(j = 1:nrow(param),
+                             .combine = bind_rows,
+                             .packages = c("dplyr", "rms", "purrr")) %dopar% {
   generate_simuldat_estimdat_statesdat_fct(
     nrep = nrep,
     seed = 1698389214,
     setting = param_nejm[param$setting_row[j], ],
     nsample = param$nsample[j],
     ground_truth = "same_probs"
-    )
-  }))
+  )
+                             }
 
+stopCluster(cl)
 save(estimdat_nejm_null, file = "./ordinal/results/rdata/estimdat_allnejm_null.RData")
 rm(param)
 
@@ -66,31 +86,46 @@ rm(param)
 param_user_effect = param_user %>% filter(useforpower == TRUE)  # not all settings are used for effect/power case
 param = expand.grid(nsample = nsample, setting_row = 1:nrow(param_user_effect))
 
-estimdat_user_effect = bind_rows(lapply(1:nrow(param), FUN = function(j) {
+n_cores = 10
+cl = makeCluster(n_cores)
+registerDoParallel(cl)
+
+estimdat_user_effect = foreach(j = 1:nrow(param),
+                               .combine = bind_rows,
+                               .packages = c("dplyr", "rms", "purrr")) %dopar% {
   generate_simuldat_estimdat_statesdat_fct(
     nrep = nrep,
     seed = 1697042394,
     setting = param_user_effect[param$setting_row[j], ],
     nsample = param$nsample[j],
     ground_truth = "diff_probs"
-    )
-  }))
+  )
+                               }
 
+stopCluster(cl)
 save(estimdat_user_effect, file = "./ordinal/results/rdata/estimdat_alluser_effect.RData")
 rm(param_user_effect, param)
 
 ## Real-data-based probabilities (NEJM sample), effect case (different probabilities) --------------
 param = expand.grid(nsample = nsample, setting_row = 1:nrow(param_nejm))
-estimdat_nejm_effect = bind_rows(lapply(1:nrow(param), FUN = function(j) {
+
+n_cores = 10
+cl = makeCluster(n_cores)
+registerDoParallel(cl)
+
+estimdat_nejm_effect = foreach(j = 1:nrow(param),
+                               .combine = bind_rows,
+                               .packages = c("dplyr", "rms", "purrr")) %dopar% {
   generate_simuldat_estimdat_statesdat_fct(
     nrep = nrep,
     seed = 1697042601,
     setting = param_nejm[param$setting_row[j], ],
     nsample = param$nsample[j],
     ground_truth = "diff_probs"
-    )
-  }))
+  )
+                               }
 
+stopCluster(cl)
 save(estimdat_nejm_effect, file = "./ordinal/results/rdata/estimdat_allnejm_effect.RData")
 rm(param)
 
