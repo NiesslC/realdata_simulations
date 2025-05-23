@@ -4,12 +4,21 @@
 .RData
 .Ruserdata
 deanalysis/results/rdata/*
+!deanalysis/results/rdata/rdata_degenes/
 !deanalysis/results/rdata/performdat_degenes.RData
 !deanalysis/results/rdata/performdat_nodegenes.RData
-deanalysis/data
+deanalysis/results/rdata/rdata_degenes/*
+!deanalysis/results/rdata/rdata_degenes/.gitkeep
+deanalysis/data/*
+!deanalysis/data/simulation_degenes
+deanalysis/data/simulation_degenes/*
+!deanalysis/data/simulation_degenes/.gitkeep
 deanalysis/code/sandbox
 
 ordinal/results/rdata/*
 !ordinal/results/rdata/performdat.RData
-ordinal/data/simulation
+ordinal/data/*
+!ordinal/data/simulation
+ordinal/data/simulation/*
+!ordinal/data/simulation/.gitkeep
 ordinal/code/sandbox
