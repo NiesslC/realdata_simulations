@@ -45,7 +45,6 @@ param.fig2$modes = c("D")  #param.fig2$modes = c('D','R','OS')
 
 dataset.dir = "./deanalysis/data/"
 analysis.dir = "./deanalysis/results/rdata/"
-#figure.dir = "./deanalysis/results/plots/"
 
 # Generate simulated datasets ----------------------------------------------------------------------
 ## Generate data according to Figure 2 in Baik et al. (settings with > 0 DE genes) -----------------

@@ -39,9 +39,6 @@ param.fig2$modes = c("D")  #param.fig2$modes = c('D','R','OS')
 #param.fig2$rowType = c("AUC", "TPR", "trueFDR")  # argument was removed for modified function
 #param.fig2$fixedfold = FALSE  # Default; not explicitly specified in Baik et al. code
 
-analysis.dir = "./deanalysis/results/rdata/"
-
-
 # Generate performance measures datasets -----------------------------------------------------------
 ## Figure 2 in Baik et al. (settings with > 0 DE genes) --------------------------------------------
 performdat_list = vector("list", length = length(data.types.names))
