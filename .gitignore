@@ -11,6 +11,7 @@ deanalysis/results/rdata/rdata_degenes/*
 !deanalysis/results/rdata/rdata_degenes/.gitkeep
 deanalysis/data/*
 !deanalysis/data/simulation_degenes
+!deanalysis/data/tcga_parameters_metadata.RData
 deanalysis/data/simulation_degenes/*
 !deanalysis/data/simulation_degenes/.gitkeep
 deanalysis/code/sandbox
