@@ -96,7 +96,7 @@ save(mean.normal_all, mean.cancer_all, mean.total_all,
 
 # Get parameters from compareDEtools (for comparison) ----------------------------------------------
 library(compareDEtools)
-param = generateDatasetParameter()
+param = compareDEtools::generateDatasetParameter()
 # Only keep KIRC parameters
 param = param[c("k_count", "disp.normal", "mean.normal", "disp.cancer", "mean.cancer",
                 "k_mean.total", "k_index.filter", "k_disp.total")]

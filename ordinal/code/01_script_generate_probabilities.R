@@ -69,7 +69,7 @@ param_user = param_user %>% mutate(input_mode = "probability")
 
 # Real-data-based parameters (NEJM sample) ---------------------------------------------------------
 param_nejm = read_excel("./ordinal/data/tablesample_final.xlsx", na = "NA")
-param_nejm = param_nejm %>% filter(grepl("yes|Yes", Include))
+param_nejm = param_nejm %>% dplyr::filter(grepl("yes|Yes", Include))
 
 # Rename variables
 param_nejm = param_nejm %>% dplyr::rename(settingname = Key, input_mode = `number format`)
@@ -88,8 +88,8 @@ param_nejm = param_nejm %>%
   )
 
 # Check that no zero probabilities
-stopifnot(nrow(param_nejm %>% filter(if_any(starts_with("group1_h"), ~ . == 0))) == 0)
-stopifnot(nrow(param_nejm %>% filter(if_any(starts_with("group2_h"), ~ . == 0))) == 0)
+stopifnot(nrow(param_nejm %>% dplyr::filter(if_any(starts_with("group1_h"), ~ . == 0))) == 0)
+stopifnot(nrow(param_nejm %>% dplyr::filter(if_any(starts_with("group2_h"), ~ . == 0))) == 0)
 
 # Check that probabilities add up to 1
 param_nejm = param_nejm %>%
@@ -148,7 +148,7 @@ param_user_long_or = param_user_long_or %>%
   group_by(settingname, h) %>%
   mutate(or = cum_odds[group == "group1"] / cum_odds[group == "group2"]) %>%
   arrange(settingname, h) %>%
-  filter(group == "group1")
+  dplyr::filter(group == "group1")
 
 # Add information to parameter dataset
 param_user_long_or = param_user_long_or %>%
@@ -181,7 +181,7 @@ param_nejm_long_or = param_nejm_long_or %>%
   group_by(settingname, h) %>%
   mutate(or = cum_odds[group == "group1"] / cum_odds[group == "group2"]) %>%
   arrange(settingname, h) %>%
-  filter(group == "group1")
+  dplyr::filter(group == "group1")
 
 # Add information to parameter dataset
 param_nejm_long_or = param_nejm_long_or %>%

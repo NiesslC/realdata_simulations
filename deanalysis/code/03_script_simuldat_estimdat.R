@@ -70,18 +70,20 @@ Sys.setenv(OMP_NUM_THREADS = "1")
 # edgeR, DESeq.pc, DESeq2, voom.tmm, voom.qn, and voom.sw
 plan(multisession, workers = length(data.types.names))  # 14
 future.apply::future_lapply(1:length(data.types.names), function(i) {
-  runSimulationAnalysis(working.dir = paste0(getwd(), "/deanalysis/data/simulation_degenes/"),  # have to use whole path, otherwise error
-                        output.dir = paste0(analysis.dir, "rdata_degenes/"),
-                        real = FALSE,
-                        data.types = data.types.names[i],
-                        rep.end = param.fig2$rep.end,
-                        nsample = param.fig2$nsample,
-                        nDE = param.fig2$nDE,
-                        fraction.upregulated = param.fig2$fraction.upregulated,
-                        disp.Types = param.fig2$disp.Types,
-                        modes = param.fig2$modes,
-                        AnalysisMethods = param.fig2$AnalysisMethods_seed_no,
-                        para = list())
+  compareDEtools::runSimulationAnalysis(
+    working.dir = paste0(getwd(), "/deanalysis/data/simulation_degenes/"),  # have to use whole path, otherwise error
+    output.dir = paste0(analysis.dir, "rdata_degenes/"),
+    real = FALSE,
+    data.types = data.types.names[i],
+    rep.end = param.fig2$rep.end,
+    nsample = param.fig2$nsample,
+    nDE = param.fig2$nDE,
+    fraction.upregulated = param.fig2$fraction.upregulated,
+    disp.Types = param.fig2$disp.Types,
+    modes = param.fig2$modes,
+    AnalysisMethods = param.fig2$AnalysisMethods_seed_no,
+    para = list()
+    )
   })
 
 
@@ -89,88 +91,98 @@ future.apply::future_lapply(1:length(data.types.names), function(i) {
 ### edgeR.ql ---------------------------------------------------------------------------------------
 plan(multisession, workers = length(data.types.names))  # 14
 future.apply::future_lapply(1:length(data.types.names), function(i) {
-  runSimulationAnalysis(working.dir = paste0(getwd(), "/deanalysis/data/simulation_degenes/"),  # have to use whole path, otherwise error
-                        output.dir = paste0(analysis.dir, "rdata_degenes/"),
-                        real = FALSE,
-                        data.types = data.types.names[i],
-                        rep.end = param.fig2$rep.end,
-                        nsample = param.fig2$nsample,
-                        nDE = param.fig2$nDE,
-                        fraction.upregulated = param.fig2$fraction.upregulated,
-                        disp.Types = param.fig2$disp.Types,
-                        modes = param.fig2$modes,
-                        AnalysisMethods = param.fig2$AnalysisMethods_seed_yes[1],  # "edgeR.ql"
-                        para = list())
+  compareDEtools::runSimulationAnalysis(
+    working.dir = paste0(getwd(), "/deanalysis/data/simulation_degenes/"),  # have to use whole path, otherwise error
+    output.dir = paste0(analysis.dir, "rdata_degenes/"),
+    real = FALSE,
+    data.types = data.types.names[i],
+    rep.end = param.fig2$rep.end,
+    nsample = param.fig2$nsample,
+    nDE = param.fig2$nDE,
+    fraction.upregulated = param.fig2$fraction.upregulated,
+    disp.Types = param.fig2$disp.Types,
+    modes = param.fig2$modes,
+    AnalysisMethods = param.fig2$AnalysisMethods_seed_yes[1],  # "edgeR.ql"
+    para = list()
+    )
   }, future.seed = 19554)
 
 
 ### edgeR.rb ---------------------------------------------------------------------------------------
 plan(multisession, workers = length(data.types.names))  # 14
 future.apply::future_lapply(1:length(data.types.names), function(i) {
-  runSimulationAnalysis(working.dir = paste0(getwd(), "/deanalysis/data/simulation_degenes/"),  # have to use whole path, otherwise error
-                        output.dir = paste0(analysis.dir, "rdata_degenes/"),
-                        real = FALSE,
-                        data.types = data.types.names[i],
-                        rep.end = param.fig2$rep.end,
-                        nsample = param.fig2$nsample,
-                        nDE = param.fig2$nDE,
-                        fraction.upregulated = param.fig2$fraction.upregulated,
-                        disp.Types = param.fig2$disp.Types,
-                        modes = param.fig2$modes,
-                        AnalysisMethods = param.fig2$AnalysisMethods_seed_yes[2],  # "edgeR.rb"
-                        para = list())
+  compareDEtools::runSimulationAnalysis(
+    working.dir = paste0(getwd(), "/deanalysis/data/simulation_degenes/"),  # have to use whole path, otherwise error
+    output.dir = paste0(analysis.dir, "rdata_degenes/"),
+    real = FALSE,
+    data.types = data.types.names[i],
+    rep.end = param.fig2$rep.end,
+    nsample = param.fig2$nsample,
+    nDE = param.fig2$nDE,
+    fraction.upregulated = param.fig2$fraction.upregulated,
+    disp.Types = param.fig2$disp.Types,
+    modes = param.fig2$modes,
+    AnalysisMethods = param.fig2$AnalysisMethods_seed_yes[2],  # "edgeR.rb"
+    para = list()
+    )
   }, future.seed = 19555)
 
 
 ### ROTS -------------------------------------------------------------------------------------------
 plan(multisession, workers = length(data.types.names))  # 14
 future.apply::future_lapply(1:length(data.types.names), function(i) {
-  runSimulationAnalysis(working.dir = paste0(getwd(), "/deanalysis/data/simulation_degenes/"),  # have to use whole path, otherwise error
-                        output.dir = paste0(analysis.dir, "rdata_degenes/"),
-                        real = FALSE,
-                        data.types = data.types.names[i],
-                        rep.end = param.fig2$rep.end,
-                        nsample = param.fig2$nsample,
-                        nDE = param.fig2$nDE,
-                        fraction.upregulated = param.fig2$fraction.upregulated,
-                        disp.Types = param.fig2$disp.Types,
-                        modes = param.fig2$modes,
-                        AnalysisMethods = param.fig2$AnalysisMethods_seed_yes[3],  # "ROTS"
-                        para = list())
+  compareDEtools::runSimulationAnalysis(
+    working.dir = paste0(getwd(), "/deanalysis/data/simulation_degenes/"),  # have to use whole path, otherwise error
+    output.dir = paste0(analysis.dir, "rdata_degenes/"),
+    real = FALSE,
+    data.types = data.types.names[i],
+    rep.end = param.fig2$rep.end,
+    nsample = param.fig2$nsample,
+    nDE = param.fig2$nDE,
+    fraction.upregulated = param.fig2$fraction.upregulated,
+    disp.Types = param.fig2$disp.Types,
+    modes = param.fig2$modes,
+    AnalysisMethods = param.fig2$AnalysisMethods_seed_yes[3],  # "ROTS"
+    para = list()
+    )
   }, future.seed = 19556)
 
 
 ### BaySeq -----------------------------------------------------------------------------------------
 plan(multisession, workers = length(data.types.names))  # 14
 future.apply::future_lapply(1:length(data.types.names), function(i) {
-  runSimulationAnalysis(working.dir = paste0(getwd(), "/deanalysis/data/simulation_degenes/"),  # have to use whole path, otherwise error
-                        output.dir = paste0(analysis.dir, "rdata_degenes/"),
-                        real = FALSE,
-                        data.types = data.types.names[i],
-                        rep.end = param.fig2$rep.end,
-                        nsample = param.fig2$nsample,
-                        nDE = param.fig2$nDE,
-                        fraction.upregulated = param.fig2$fraction.upregulated,
-                        disp.Types = param.fig2$disp.Types,
-                        modes = param.fig2$modes,
-                        AnalysisMethods = param.fig2$AnalysisMethods_seed_yes[4],  # "BaySeq"
-                        para = list())
+  compareDEtools::runSimulationAnalysis(
+    working.dir = paste0(getwd(), "/deanalysis/data/simulation_degenes/"),  # have to use whole path, otherwise error
+    output.dir = paste0(analysis.dir, "rdata_degenes/"),
+    real = FALSE,
+    data.types = data.types.names[i],
+    rep.end = param.fig2$rep.end,
+    nsample = param.fig2$nsample,
+    nDE = param.fig2$nDE,
+    fraction.upregulated = param.fig2$fraction.upregulated,
+    disp.Types = param.fig2$disp.Types,
+    modes = param.fig2$modes,
+    AnalysisMethods = param.fig2$AnalysisMethods_seed_yes[4],  # "BaySeq"
+    para = list()
+    )
   }, future.seed = 19557)
 
 
 ### PoissonSeq -------------------------------------------------------------------------------------
 plan(multisession, workers = length(data.types.names))  # 14
 future.apply::future_lapply(1:length(data.types.names), function(i) {
-  runSimulationAnalysis(working.dir = paste0(getwd(), "/deanalysis/data/simulation_degenes/"),  # have to use whole path, otherwise error
-                        output.dir = paste0(analysis.dir, "rdata_degenes/"),
-                        real = FALSE,
-                        data.types = data.types.names[i],
-                        rep.end = param.fig2$rep.end,
-                        nsample = param.fig2$nsample,
-                        nDE = param.fig2$nDE,
-                        fraction.upregulated = param.fig2$fraction.upregulated,
-                        disp.Types = param.fig2$disp.Types,
-                        modes = param.fig2$modes,
-                        AnalysisMethods = param.fig2$AnalysisMethods_seed_yes[5],  # "PoissonSeq"
-                        para = list())
+  compareDEtools::runSimulationAnalysis(
+    working.dir = paste0(getwd(), "/deanalysis/data/simulation_degenes/"),  # have to use whole path, otherwise error
+    output.dir = paste0(analysis.dir, "rdata_degenes/"),
+    real = FALSE,
+    data.types = data.types.names[i],
+    rep.end = param.fig2$rep.end,
+    nsample = param.fig2$nsample,
+    nDE = param.fig2$nDE,
+    fraction.upregulated = param.fig2$fraction.upregulated,
+    disp.Types = param.fig2$disp.Types,
+    modes = param.fig2$modes,
+    AnalysisMethods = param.fig2$AnalysisMethods_seed_yes[5],  # "PoissonSeq"
+    para = list()
+    )
   }, future.seed = 19558)

@@ -38,19 +38,20 @@ get_parameters_fct = function(dataset) {
   k_count = k_count[, c(index.cancer, index.normal)]
   
   # Normal
-  dge.normal = DGEList(counts = k_count[, ((nsample/2) + 1):nsample],
-                       group = factor(rep(2, (nsample/2))))
-  dge.normal = calcNormFactors(dge.normal)
-  dge.normal = estimateCommonDisp(dge.normal)
-  dge.normal = estimateTagwiseDisp(dge.normal)
+  dge.normal = edgeR::DGEList(counts = k_count[, ((nsample/2) + 1):nsample],
+                              group = factor(rep(2, (nsample/2))))
+  dge.normal = edgeR::calcNormFactors(dge.normal)
+  dge.normal = edgeR::estimateCommonDisp(dge.normal)
+  dge.normal = edgeR::estimateTagwiseDisp(dge.normal)
   disp.normal = dge.normal$tagwise.dispersion
   mean.normal = apply(k_count[, ((nsample/2) + 1):nsample], 1, mean)
   
   # Cancer
-  dge.cancer = DGEList(counts = k_count[, 1:(nsample/2)], group = factor(rep(1, (nsample/2))))
-  dge.cancer = calcNormFactors(dge.cancer)
-  dge.cancer = estimateCommonDisp(dge.cancer)
-  dge.cancer = estimateTagwiseDisp(dge.cancer)
+  dge.cancer = edgeR::DGEList(counts = k_count[, 1:(nsample/2)], 
+                              group = factor(rep(1, (nsample/2))))
+  dge.cancer = edgeR::calcNormFactors(dge.cancer)
+  dge.cancer = edgeR::estimateCommonDisp(dge.cancer)
+  dge.cancer = edgeR::estimateTagwiseDisp(dge.cancer)
   disp.cancer = dge.cancer$tagwise.dispersion
   mean.cancer = apply(k_count[, 1:(nsample/2)], 1, mean)
   
@@ -62,10 +63,11 @@ get_parameters_fct = function(dataset) {
   disp.cancer = disp.cancer[-k_index.filter]
   mean.normal = mean.normal[-k_index.filter]
   mean.cancer = mean.cancer[-k_index.filter]
-  k_dge.total = DGEList(counts = k_count, group = factor(c(rep(1, (nsample/2)), rep(2, (nsample/2)))))
-  k_dge.total = calcNormFactors(k_dge.total)
-  k_dge.total = estimateCommonDisp(k_dge.total)
-  k_dge.total = estimateTagwiseDisp(k_dge.total)
+  k_dge.total = edgeR::DGEList(counts = k_count, 
+                               group = factor(c(rep(1, (nsample/2)), rep(2, (nsample/2)))))
+  k_dge.total = edgeR::calcNormFactors(k_dge.total)
+  k_dge.total = edgeR::estimateCommonDisp(k_dge.total)
+  k_dge.total = edgeR::estimateTagwiseDisp(k_dge.total)
   k_disp.total = k_dge.total$tagwise.dispersion
   k_disp.total = k_disp.total[-k_index.filter]
   
@@ -362,21 +364,23 @@ SyntheticDataSimulation_new = function(simul.data,
   }
   if (dispType == "different") {
     if (grepl("TCGA|KIRC", simul.data) || simul.data == "Bottomly") {
-      sample.disp1 = sapply(sample.mean1, FUN = getDisp,
+      sample.disp1 = sapply(sample.mean1, FUN = compareDEtools::getDisp,
                             mean.condition = mean.condition1,
                             disp.condition = disp.condition1,
                             simplify = TRUE, USE.NAMES = FALSE)
-      sample.disp2 = sapply(sample.mean2, FUN = getDisp,
+      sample.disp2 = sapply(sample.mean2, FUN = compareDEtools::getDisp,
                             mean.condition = mean.condition2,
                             disp.condition = disp.condition2,
                             simplify = TRUE, USE.NAMES = FALSE)
     } else if (simul.data == "mKdB" || simul.data == "mBdK") {
-      sample.disp1 = sapply(sub.sample.mean1[order(sub.sample.mean1)], FUN = getDisp,
+      sample.disp1 = sapply(sub.sample.mean1[order(sub.sample.mean1)],
+                            FUN = compareDEtools::getDisp,
                             mean.condition = mean.condition1,
                             disp.condition = disp.condition1,
                             simplify = TRUE, USE.NAMES = FALSE)
       sample.disp1 = sample.disp1[order(order(sample.mean1))]
-      sample.disp2 = sapply(sub.sample.mean2[order(sub.sample.mean2)], FUN = getDisp,
+      sample.disp2 = sapply(sub.sample.mean2[order(sub.sample.mean2)],
+                            FUN = compareDEtools::getDisp,
                             mean.condition = mean.condition2,
                             disp.condition = disp.condition2,
                             simplify = TRUE, USE.NAMES = FALSE)
@@ -459,8 +463,9 @@ SyntheticDataSimulation_new = function(simul.data,
   sample.annot = data.frame(condition = c(rep(1, s), rep(2, s)))
   colnames(counts) = rownames(sample.annot)
   info.parameters = list(dataset = datasetName, uID = datasetName)
-  cpd = compData(count.matrix = counts, sample.annotations = sample.annot,
-                 info.parameters = info.parameters)
+  cpd = compcodeR::compData(count.matrix = counts,
+                            sample.annotations = sample.annot,
+                            info.parameters = info.parameters)
   saveRDS(cpd, datasetName)
 }
 
@@ -509,7 +514,7 @@ performance_plot_new = function(working.dir,
     for (s in nsample) {
       for (prop in fraction.upregulated) {
         for (tools in AnalysisMethods) {
-          tools2 = select_tool((tools))
+          tools2 = compareDEtools::select_tool((tools))
           tpr_temp = c()
           tfdr_temp = c()
           auc_temp = c()
@@ -532,7 +537,7 @@ performance_plot_new = function(working.dir,
             
             if ((tools %in% c("DESeq.pc", "DESeq2")) && any(is.na(result$adjpvalue))) {  # if DESeq.pc or DESeq2, exclude genes with NA adjpvalue
               nas_temp = append(nas_temp, sum(is.na(result$adjpvalue)))  # csauer: add info regarding NAs
-              result = result %>% filter(!is.na(adjpvalue))
+              result = result %>% dplyr::filter(!is.na(adjpvalue))
             } else {
               nas_temp = append(nas_temp, 0)  # csauer: add info regarding NAs
             }
@@ -543,7 +548,7 @@ performance_plot_new = function(working.dir,
               rownames(result) = as.character(result$Genename)
             }
             ts = append(ts, setdiff(tools, ts))
-            mColor = select_color(tools)
+            mColor = compareDEtools::select_color(tools)
             tc = append(tc, setdiff(mColor, tc))
             if (!is.null(result$FDR)) {
               FDR = result$FDR
@@ -581,7 +586,7 @@ performance_plot_new = function(working.dir,
             label[indexTrue] = 1
             
            
-            pred = prediction(predictions = 1 - FDR, labels = label)
+            pred = ROCR::prediction(predictions = 1 - FDR, labels = label)
             
             auc_temp = append(auc_temp, performance(pred, "auc")@y.values[[1]][1])
         
