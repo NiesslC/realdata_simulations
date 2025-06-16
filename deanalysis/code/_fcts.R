@@ -32,8 +32,8 @@ get_parameters_fct = function(dataset) {
   #data(kidney, package = "SimSeq")
   nsample = ncol(dataset)
   k_count = dataset  #kidney$counts
-  index.cancer = which(substr(colnames(dataset), start = 14, stop = 15) == "01") #(1:72) * 2
-  index.normal = which(substr(colnames(dataset), start = 14, stop = 15) == "11") #index.cancer - 1
+  index.cancer = which(substr(colnames(dataset), start = 14, stop = 15) == "01")  #(1:72) * 2
+  index.normal = which(substr(colnames(dataset), start = 14, stop = 15) == "11")  #index.cancer - 1
   stopifnot(length(index.normal) + length(index.cancer) == ncol(dataset))
   k_count = k_count[, c(index.cancer, index.normal)]
   
@@ -150,7 +150,7 @@ generateDatasetParameter_new = function(data.types) {
   #b_disp.total = b_disp.total[-b_index.filter]
   #
   ## SEQC count data from GEO database with accession number GSE49712  -----
-  ## (URL: https://www.ncbi.nlm.nih.gov/ geo/query/acc.cgi?acc=GSE49712).
+  ## (URL: https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE49712).
   #SEQC <- system.file("extdata", "GSE49712_HTSeq.txt", package = "compareDEtools")
   #s_count <- read.table(SEQC, header = T)
   #s_count <- s_count[grep("no_feature|ambiguous|too_low_aQual|not_aligned|alignment_not_unique", 
@@ -398,31 +398,38 @@ SyntheticDataSimulation_new = function(simul.data,
   if (mode == "OS") {
     for (i in 1:n.var) {
       counts[i, 1:round(s/3)] = rnbinom(round(s/3),
-                                        1/(5 * sample.disp2[i]), mu = sample.mean2[i])
+                                        1/(5 * sample.disp2[i]), 
+                                        mu = sample.mean2[i])
       counts[i, (round(s/3) + 1):s] = rnbinom((s - round(s/3)),
-                                              1/sample.disp2[i], mu = sample.mean2[i])
+                                              1/sample.disp2[i],
+                                              mu = sample.mean2[i])
       counts[i, (s + 1):(s + round(s/3))] = rnbinom(round(s/3),
-                                                    1/(5 * sample.disp1[i]), mu = sample.mean1[i])
+                                                    1/(5 * sample.disp1[i]),
+                                                    mu = sample.mean1[i])
       counts[i, (s + round(s/3) + 1):(2 * s)] = rnbinom((s - round(s/3)),
-                                                        1/sample.disp1[i], mu = sample.mean1[i])
+                                                        1/sample.disp1[i],
+                                                        mu = sample.mean1[i])
     }
   } else if (mode == "DL") {
     for (i in 1:n.var) {
-      counts[i, 1:s] = rnbinom(s, 22.5/sample.disp2[i],
-                               mu = sample.mean2[i])
+      counts[i, 1:s] = rnbinom(s, 22.5/sample.disp2[i], mu = sample.mean2[i])
       counts[i, (s + 1):(2 * s)] = rnbinom(s, 22.5/sample.disp1[i],
                                            mu = sample.mean1[i])
     }
   } else if (Large_sample == TRUE) {
     for (i in 1:n.var) {
       counts[i, 1:round(s/3)] = rnbinom(round(s/3),
-                                        1/(5 * sample.disp2[i]), mu = sample.mean2[i])
+                                        1/(5 * sample.disp2[i]),
+                                        mu = sample.mean2[i])
       counts[i, (round(s/3) + 1):s] = rnbinom((s - round(s/3)),
-                                              1/sample.disp2[i], mu = sample.mean2[i])
+                                              1/sample.disp2[i],
+                                              mu = sample.mean2[i])
       counts[i, (s + 1):(s + round(s/3))] = rnbinom(round(s/3),
-                                                    1/(5 * sample.disp1[i]), mu = sample.mean1[i])
+                                                    1/(5 * sample.disp1[i]),
+                                                    mu = sample.mean1[i])
       counts[i, (s + round(s/3) + 1):(2 * s)] = rnbinom((s - round(s/3)),
-                                                        1/sample.disp1[i], mu = sample.mean1[i])
+                                                        1/sample.disp1[i],
+                                                        mu = sample.mean1[i])
     }
     RO = matrix(runif(n.var * 2 * s, min = 0, max = 100),
                 nrow = n.var, ncol = 2 * s)

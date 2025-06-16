@@ -37,7 +37,6 @@ lrm_quiet = purrr::quietly(function(x, y) {
   })
 
 
-
 # FUNCTION run_methods_fct
 # = function that returns p-values from several methods testing differences in treatment groups with
 #   ordinal outcome
@@ -75,6 +74,7 @@ run_methods_fct = function(x, y) {
   return(estimdat)
 }
 
+
 # FUNCTION generate_simuldat_fct
 # = function that generates ordinal data
 # INPUT
@@ -95,6 +95,7 @@ generate_simuldat_fct = function(probs1, probs2, nsample, k) {
   
   return(list("x" = x, "y" = y))
 }
+
 
 # FUNCTION generate_simuldat_estimdat_statesdat_fct
 # = function that runs simulation reflecting an RCT with ordinal outcome.

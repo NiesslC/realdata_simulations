@@ -29,7 +29,7 @@ stopifnot(all.equal(length(unique(param_nejm$settingname)), nrow(param_nejm)))
 stopifnot(all.equal(length(unique(param_user$settingname)), nrow(param_user)))
 
 # Set parameters -----------------------------------------------------------------------------------
-nrep = 10000  # number of simulation repetitions (required to achieve a MCSE of <0.5% if worst-case SE of 50% coverage occurs, see Morris et al., 2019)
+nrep = 10000  # number of simulation repetitions (required to achieve a MCSE of < 0.5% if worst-case SE of 50% coverage occurs, see Morris et al., 2019)
 nsample = 2 * c(30, 60, 100, 150, 300)  # total number of observations
 
 # Generate simulated datasets, estimates datasets, and states datasets -----------------------------
