@@ -5,8 +5,11 @@
 # 
 # File name:   _fcts.R
 # Author:      Christina Sauer
-# Description: TODO   
-# Notes:     
+# Description: Functions for executing the simulation  
+# Notes:
+#   - Functions from the following packages are used in the functions defined
+#     here: dplyr, purrr, and rms. These packages do not have to be loaded or
+#     attached, just installed.
 ############################################################################ ---
 
 # FUNCTIONS wilcox_quiet, fisher_quiet, chisq_quiet, lrm_quiet

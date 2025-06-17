@@ -7,6 +7,8 @@
 # Author:      Christina Sauer
 # Description: TODO, simulation parameters   
 # Notes:     
+#   - Requires `data/tablesample_final.xlsx`.
+#   - Saves `data/probabilities.RData`.
 ############################################################################ ---
 
 library(stringi)

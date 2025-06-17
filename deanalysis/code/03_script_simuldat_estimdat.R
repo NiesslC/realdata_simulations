@@ -6,8 +6,16 @@
 # File name:   03_script_simuldat_estimdat.R
 # Author:      Christina Sauer
 # Description: Script to generate simulated datasets and estimates datasets   
-# Notes:       
-#   - Mention runtime?
+# Notes:   
+#   - Requires `data/tcga_parameters.RData`.
+#   - Saves simulated datasets in `data/simulation_degenes/` and estimates 
+#     datasets in `results/rdata/rdata_degenes/`.
+#   - This script simulates and saves a large amount of data. The 5,600 simulated
+#     datasets saved in `data/simulation_degenes/` have a total size of approx. 
+#     1.88 GB. The 61,600 estimates datasets saved in `results/rdata/rdata_degenes/`
+#     have a total size of approx. 40 GB.
+#   - Executing this script, specifically, generating the estimates datasets
+#     takes a long time (see repository README for more details).
 ############################################################################ ---
 
 library(compareDEtools)

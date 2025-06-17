@@ -6,7 +6,9 @@
 # File name:   02_script_get_tcga_parameters.R
 # Author:      Christina Sauer
 # Description: TODO  
-# Notes:     
+# Notes:
+#   - Requires `data/tcga_datasets.RData`.
+#   - Saves `data/tcga_parameters.RData` and `data/tcga_parameters_metadata.RData`.
 ############################################################################ ---
 
 library(edgeR)

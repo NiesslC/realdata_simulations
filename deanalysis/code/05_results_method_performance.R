@@ -7,6 +7,8 @@
 # Author:      Christina Sauer
 # Description: Evaluate performance results of methods and generate plots and tables   
 # Notes:     
+#   - Requires `data/tcga_parameters_metadata.RData` and `results/rdata/performdat_degenes.RData`.
+#   - Saves figures in `results/plots/`.
 ############################################################################ ---
 
 library(dplyr)

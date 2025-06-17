@@ -5,8 +5,11 @@
 # 
 # File name:   04_script_performdat.R
 # Author:      Christina Sauer
-# Description: Script to generate performances measures datasets 
-# Notes:     
+# Description: Script to generate performance measures dataset
+# Notes:
+#   - Requires `data/tcga_parameters.RData` and the estimates datasets saved in
+#     `results/rdata/rdata_degenes/`.
+#   - Saves `results/rdata/performdat_degenes.RData`.
 ############################################################################ ---
 
 library(dplyr)

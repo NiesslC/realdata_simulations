@@ -5,9 +5,20 @@
 # 
 # File name:   02_script_simuldat_statesdat_estimdat_performdat.R
 # Author:      Christina Sauer
-# Description: Script for running the simulation, i.e. a) generating simulated datasets, 
-#              b) estimates datasets, c) states datasets, and d) performance measures datasets    
+# Description: Script for running the simulation, i.e. generating and saving 
+#              a) the simulated datasets, b) the RNG states datasets, c) the 
+#              estimates datasets, and d) the performance measures dataset   
 # Notes:     
+#   - Requires `data/probabilities.RData`.
+#   - Saves simulated datasets and states datasets in `data/simulation/`, 
+#     estimates data in `results/rdata/estimdat_alluser_effect.RData` and 
+#     `results/rdata/estimdat_allnejm_effect.RData`, and the performance measure
+#     dataset in `results/rdata/performdat.RData`.
+#   - The 95 `.RData` files saved in `data/simulation/` (simulated datasets and
+#     states datasets) have a total size of approx. 173 MB. The two saved 
+#     datasets with the estimates data, `estimdat_alluser_effect.RData` and 
+#     `estimdat_allnejm_effect.RData`, have a size of approx. 67 MB and approx.
+#     1.47 GB, respectively.
 ############################################################################ ---
 
 library(rms)
