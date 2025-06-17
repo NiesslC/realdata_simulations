@@ -170,7 +170,7 @@ generate_simuldat_estimdat_statesdat_fct = function(nrep,
   estimdat = cbind(estimdat, setting)
   #estimdat = estimdat %>% mutate(unique_categories = sapply(simuldata_list, FUN = function(i) length(unique(i$y))))
   
-  # Save states and simulated datasets and return estimated dataset
+  # Save RNG states and simulated datasets and return estimated dataset
   save(statesdat_list, simuldata_list,
        file = paste0("./ordinal/data/simulation/statesdat_simuldat_n", nsample, "_nrep",
                      format(nrep, scientific = FALSE), "_", settingname, ".RData"))

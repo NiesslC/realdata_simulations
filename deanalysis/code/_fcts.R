@@ -27,7 +27,7 @@ get_paired_data_fct = function(dataset) {
 }
 
 
-# Function based on compareDEtools::generateDatasetParameter()
+# Function based on compareDEtools::generateDatasetParameter(), see https://github.com/unistbig/compareDEtools/blob/master/R/SimulationDataGeneration.R
 get_parameters_fct = function(dataset) {
   #data(kidney, package = "SimSeq")
   nsample = ncol(dataset)
@@ -80,11 +80,16 @@ get_parameters_fct = function(dataset) {
   return(dataset.parameters)
 }
 
-# Modifications generateDatasetParameter(): 
-# - Add argument <data.types> to allow to chose from TCGA datasets 
+
+# FUNCTION generateDatasetParameter_new
+# = modified version of compareDEtools::generateDatasetParameter()
+# Modifications:
+# - Add argument <data.types> to allow to chose from TCGA datasets.
 # - Do not calculate parameters for TCGA (incl. KIRC) in this function. Instead 
 #   calculate them in get_parameters_fct() and load them here from the .RData file
 #   that get_parameters_fct() saves.
+# - Comment out code corresponding to the non-TCGA data used by Baik et al. (2020; 
+#   Bottomly count data and SEQC count data).
 generateDatasetParameter_new = function(data.types) {
   
   # TCGA datasets ----
@@ -169,8 +174,13 @@ generateDatasetParameter_new = function(data.types) {
   return(dataset.parameters)
 }
 
-# Modifications GenerateSyntheticSimulation():
-# - Add <data.types> argument to generateDatasetParameter()
+
+# FUNCTION GenerateSyntheticSimulation_new
+# = modified version of compareDEtools::GenerateSyntheticSimulation()
+# Modifications:
+# - Call modified functions: generateDatasetParameter_new() (with the additional 
+#   <data.types> argument) instead of compareDEtools::generateDatasetParameter() 
+#   and SyntheticDataSimulation_new() instead of compareDEtools::SyntheticDataSimulation()
 GenerateSyntheticSimulation_new = function(working.dir,
                                            data.types,
                                            fixedfold = FALSE,
@@ -185,7 +195,7 @@ GenerateSyntheticSimulation_new = function(working.dir,
                                            RO.prop = 5,
                                            random_sampling = FALSE,
                                            Large_sample = FALSE) {
-  dataset.parameters = generateDatasetParameter_new(data.types)  # cniessl: add argument to generateDatasetParameter()
+  dataset.parameters = generateDatasetParameter_new(data.types)  # csauer: call modified function with additional argument
   for (simul.data in data.types) {
     for (mode in modes) {
       for (disp.Type in disp.Types) {
@@ -260,7 +270,9 @@ GenerateSyntheticSimulation_new = function(working.dir,
 }
 
 
-# Modifications SyntheticDataSimulation():
+# FUNCTION SyntheticDataSimulation_new
+# = modified version of compareDEtools::SyntheticDataSimulation()
+# Modifications:
 # - Change <simul.data == "KIRC"> to <grepl("TCGA|KIRC", simul.data)>
 # - Change <simul.data != "KIRC"> to <!grepl("TCGA|KIRC", simul.data)>
 SyntheticDataSimulation_new = function(simul.data,
@@ -476,10 +488,15 @@ SyntheticDataSimulation_new = function(simul.data,
   saveRDS(cpd, datasetName)
 }
 
-# Modifications performance_plot():
-# - Return dataframe instead of plot (-> remove <figure.dir> and <rowType> arguments, both
-#   of which are used only for the plotting part of the function)
-# - Remove adjusted p-values with NAs and include this information in the results dataframe
+
+# FUNCTION performance_plot_new
+# = modified version of compareDEtools::performance_plot()
+# Modifications:
+# - Return dataframe instead of plot and remove <figure.dir> and <rowType> arguments, 
+#   which are used only for the plotting part of the function
+# - Only for the methods DESeq.pc and DESeq2: Exclude genes for which the adjusted 
+#   p-value is NA and include this information (i.e. the number of NAs) in the results dataframe
+# - Comment out code corresponding to the plotting part of the function
 performance_plot_new = function(working.dir,
                                 fixedfold = FALSE,
                                 simul.data,
@@ -542,12 +559,14 @@ performance_plot_new = function(working.dir,
             }
             result = result@result.table
             
-            if ((tools %in% c("DESeq.pc", "DESeq2")) && any(is.na(result$adjpvalue))) {  # if DESeq.pc or DESeq2, exclude genes with NA adjpvalue
+            # csauer: exclude genes for which the adjusted p-value is NA (only for DESeq.pc and DESeq2)
+            if ((tools %in% c("DESeq.pc", "DESeq2")) && any(is.na(result$adjpvalue))) {
               nas_temp = append(nas_temp, sum(is.na(result$adjpvalue)))  # csauer: add info regarding NAs
               result = result %>% dplyr::filter(!is.na(adjpvalue))
             } else {
               nas_temp = append(nas_temp, 0)  # csauer: add info regarding NAs
             }
+
             if (nrow(result) == 0) {
               next
             }
@@ -616,7 +635,7 @@ performance_plot_new = function(working.dir,
   res = data.frame(Methods = METHOD, nSample = NSAMPLE, Repeat = REPEAT,
                    nDE = NDE, upDE = UPPROP, TPR = tpr, trueFDR = tfdr,
                    AUC = auc, Color = COLOR,
-                   # csauer:
+                   # csauer: include parameter values in results dataframe
                    simul.data = simul.data,
                    nvar = nvar,
                    fixedfold = fixedfold,

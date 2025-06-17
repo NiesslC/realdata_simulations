@@ -197,7 +197,7 @@ param_nejm = param_nejm %>%
 rm(param_nejm_long_or)
 
 ## KL, relative effect, and asymptotic variance ----------------------------------------------------
-library(philentropy)
+library(philentropy)  # for the function kullback_leibler_distance()
 
 ### Researcher-/User-defined parameters ------------------------------------------------------------
 param_user_long_releff_var = param_user_long %>%
