@@ -7,6 +7,8 @@
 # Author:      Christina Sauer
 # Description: Script to evaluate simulation results and generate plots and tables
 # Notes:     
+#   - Requires `data/probabilities.RData` and `results/rdata/performdat.RData`.
+#   - Saves figures in `results/plots/`.
 ############################################################################ ---
 
 library(ggplot2); theme_set(theme_bw())

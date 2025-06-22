@@ -5,8 +5,15 @@
 # 
 # File name:   _fcts.R
 # Author:      Christina Sauer
-# Description:    
-# Notes:     
+# Description: Functions for executing the simulation   
+# Notes:  
+#   - Five of the functions are based on or modified versions of functions from
+#     the compareDEtools package (https://github.com/unistbig/compareDEtools).
+#     For modified functions, we added the suffix "_new" to the original name 
+#     and noted the modifications we made. 
+#   - Functions from the following packages are used in the functions defined
+#     here: compareDEtools, compcodeR, dplyr, edgeR, and ROCR. These packages do
+#     not have to be loaded or attached, just installed.
 ############################################################################ ---
 
 # Function to get tumor-normal paired samples
@@ -27,30 +34,31 @@ get_paired_data_fct = function(dataset) {
 }
 
 
-# Function based on compareDEtools::generateDatasetParameter()
+# Function based on compareDEtools::generateDatasetParameter(), see https://github.com/unistbig/compareDEtools/blob/master/R/SimulationDataGeneration.R
 get_parameters_fct = function(dataset) {
   #data(kidney, package = "SimSeq")
   nsample = ncol(dataset)
   k_count = dataset  #kidney$counts
-  index.cancer = which(substr(colnames(dataset), start = 14, stop = 15) == "01") #(1:72) * 2
-  index.normal = which(substr(colnames(dataset), start = 14, stop = 15) == "11") #index.cancer - 1
+  index.cancer = which(substr(colnames(dataset), start = 14, stop = 15) == "01")  #(1:72) * 2
+  index.normal = which(substr(colnames(dataset), start = 14, stop = 15) == "11")  #index.cancer - 1
   stopifnot(length(index.normal) + length(index.cancer) == ncol(dataset))
   k_count = k_count[, c(index.cancer, index.normal)]
   
   # Normal
-  dge.normal = DGEList(counts = k_count[, ((nsample/2) + 1):nsample],
-                       group = factor(rep(2, (nsample/2))))
-  dge.normal = calcNormFactors(dge.normal)
-  dge.normal = estimateCommonDisp(dge.normal)
-  dge.normal = estimateTagwiseDisp(dge.normal)
+  dge.normal = edgeR::DGEList(counts = k_count[, ((nsample/2) + 1):nsample],
+                              group = factor(rep(2, (nsample/2))))
+  dge.normal = edgeR::calcNormFactors(dge.normal)
+  dge.normal = edgeR::estimateCommonDisp(dge.normal)
+  dge.normal = edgeR::estimateTagwiseDisp(dge.normal)
   disp.normal = dge.normal$tagwise.dispersion
   mean.normal = apply(k_count[, ((nsample/2) + 1):nsample], 1, mean)
   
   # Cancer
-  dge.cancer = DGEList(counts = k_count[, 1:(nsample/2)], group = factor(rep(1, (nsample/2))))
-  dge.cancer = calcNormFactors(dge.cancer)
-  dge.cancer = estimateCommonDisp(dge.cancer)
-  dge.cancer = estimateTagwiseDisp(dge.cancer)
+  dge.cancer = edgeR::DGEList(counts = k_count[, 1:(nsample/2)], 
+                              group = factor(rep(1, (nsample/2))))
+  dge.cancer = edgeR::calcNormFactors(dge.cancer)
+  dge.cancer = edgeR::estimateCommonDisp(dge.cancer)
+  dge.cancer = edgeR::estimateTagwiseDisp(dge.cancer)
   disp.cancer = dge.cancer$tagwise.dispersion
   mean.cancer = apply(k_count[, 1:(nsample/2)], 1, mean)
   
@@ -62,10 +70,11 @@ get_parameters_fct = function(dataset) {
   disp.cancer = disp.cancer[-k_index.filter]
   mean.normal = mean.normal[-k_index.filter]
   mean.cancer = mean.cancer[-k_index.filter]
-  k_dge.total = DGEList(counts = k_count, group = factor(c(rep(1, (nsample/2)), rep(2, (nsample/2)))))
-  k_dge.total = calcNormFactors(k_dge.total)
-  k_dge.total = estimateCommonDisp(k_dge.total)
-  k_dge.total = estimateTagwiseDisp(k_dge.total)
+  k_dge.total = edgeR::DGEList(counts = k_count, 
+                               group = factor(c(rep(1, (nsample/2)), rep(2, (nsample/2)))))
+  k_dge.total = edgeR::calcNormFactors(k_dge.total)
+  k_dge.total = edgeR::estimateCommonDisp(k_dge.total)
+  k_dge.total = edgeR::estimateTagwiseDisp(k_dge.total)
   k_disp.total = k_dge.total$tagwise.dispersion
   k_disp.total = k_disp.total[-k_index.filter]
   
@@ -78,11 +87,16 @@ get_parameters_fct = function(dataset) {
   return(dataset.parameters)
 }
 
-# Modifications generateDatasetParameter(): 
-# - Add argument <data.types> to allow to chose from TCGA datasets 
+
+# FUNCTION generateDatasetParameter_new
+# = modified version of compareDEtools::generateDatasetParameter()
+# Modifications:
+# - Add argument <data.types> to allow to chose from TCGA datasets.
 # - Do not calculate parameters for TCGA (incl. KIRC) in this function. Instead 
 #   calculate them in get_parameters_fct() and load them here from the .RData file
 #   that get_parameters_fct() saves.
+# - Comment out code corresponding to the non-TCGA data used by Baik et al. (2020; 
+#   Bottomly count data and SEQC count data).
 generateDatasetParameter_new = function(data.types) {
   
   # TCGA datasets ----
@@ -148,7 +162,7 @@ generateDatasetParameter_new = function(data.types) {
   #b_disp.total = b_disp.total[-b_index.filter]
   #
   ## SEQC count data from GEO database with accession number GSE49712  -----
-  ## (URL: https://www.ncbi.nlm.nih.gov/ geo/query/acc.cgi?acc=GSE49712).
+  ## (URL: https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE49712).
   #SEQC <- system.file("extdata", "GSE49712_HTSeq.txt", package = "compareDEtools")
   #s_count <- read.table(SEQC, header = T)
   #s_count <- s_count[grep("no_feature|ambiguous|too_low_aQual|not_aligned|alignment_not_unique", 
@@ -167,8 +181,13 @@ generateDatasetParameter_new = function(data.types) {
   return(dataset.parameters)
 }
 
-# Modifications GenerateSyntheticSimulation():
-# - Add <data.types> argument to generateDatasetParameter()
+
+# FUNCTION GenerateSyntheticSimulation_new
+# = modified version of compareDEtools::GenerateSyntheticSimulation()
+# Modifications:
+# - Call modified functions: generateDatasetParameter_new() (with the additional 
+#   <data.types> argument) instead of compareDEtools::generateDatasetParameter() 
+#   and SyntheticDataSimulation_new() instead of compareDEtools::SyntheticDataSimulation()
 GenerateSyntheticSimulation_new = function(working.dir,
                                            data.types,
                                            fixedfold = FALSE,
@@ -183,7 +202,7 @@ GenerateSyntheticSimulation_new = function(working.dir,
                                            RO.prop = 5,
                                            random_sampling = FALSE,
                                            Large_sample = FALSE) {
-  dataset.parameters = generateDatasetParameter_new(data.types)  # cniessl: add argument to generateDatasetParameter()
+  dataset.parameters = generateDatasetParameter_new(data.types)  # csauer: call modified function with additional argument
   for (simul.data in data.types) {
     for (mode in modes) {
       for (disp.Type in disp.Types) {
@@ -258,7 +277,9 @@ GenerateSyntheticSimulation_new = function(working.dir,
 }
 
 
-# Modifications SyntheticDataSimulation():
+# FUNCTION SyntheticDataSimulation_new
+# = modified version of compareDEtools::SyntheticDataSimulation()
+# Modifications:
 # - Change <simul.data == "KIRC"> to <grepl("TCGA|KIRC", simul.data)>
 # - Change <simul.data != "KIRC"> to <!grepl("TCGA|KIRC", simul.data)>
 SyntheticDataSimulation_new = function(simul.data,
@@ -362,21 +383,23 @@ SyntheticDataSimulation_new = function(simul.data,
   }
   if (dispType == "different") {
     if (grepl("TCGA|KIRC", simul.data) || simul.data == "Bottomly") {
-      sample.disp1 = sapply(sample.mean1, FUN = getDisp,
+      sample.disp1 = sapply(sample.mean1, FUN = compareDEtools::getDisp,
                             mean.condition = mean.condition1,
                             disp.condition = disp.condition1,
                             simplify = TRUE, USE.NAMES = FALSE)
-      sample.disp2 = sapply(sample.mean2, FUN = getDisp,
+      sample.disp2 = sapply(sample.mean2, FUN = compareDEtools::getDisp,
                             mean.condition = mean.condition2,
                             disp.condition = disp.condition2,
                             simplify = TRUE, USE.NAMES = FALSE)
     } else if (simul.data == "mKdB" || simul.data == "mBdK") {
-      sample.disp1 = sapply(sub.sample.mean1[order(sub.sample.mean1)], FUN = getDisp,
+      sample.disp1 = sapply(sub.sample.mean1[order(sub.sample.mean1)],
+                            FUN = compareDEtools::getDisp,
                             mean.condition = mean.condition1,
                             disp.condition = disp.condition1,
                             simplify = TRUE, USE.NAMES = FALSE)
       sample.disp1 = sample.disp1[order(order(sample.mean1))]
-      sample.disp2 = sapply(sub.sample.mean2[order(sub.sample.mean2)], FUN = getDisp,
+      sample.disp2 = sapply(sub.sample.mean2[order(sub.sample.mean2)],
+                            FUN = compareDEtools::getDisp,
                             mean.condition = mean.condition2,
                             disp.condition = disp.condition2,
                             simplify = TRUE, USE.NAMES = FALSE)
@@ -394,31 +417,38 @@ SyntheticDataSimulation_new = function(simul.data,
   if (mode == "OS") {
     for (i in 1:n.var) {
       counts[i, 1:round(s/3)] = rnbinom(round(s/3),
-                                        1/(5 * sample.disp2[i]), mu = sample.mean2[i])
+                                        1/(5 * sample.disp2[i]), 
+                                        mu = sample.mean2[i])
       counts[i, (round(s/3) + 1):s] = rnbinom((s - round(s/3)),
-                                              1/sample.disp2[i], mu = sample.mean2[i])
+                                              1/sample.disp2[i],
+                                              mu = sample.mean2[i])
       counts[i, (s + 1):(s + round(s/3))] = rnbinom(round(s/3),
-                                                    1/(5 * sample.disp1[i]), mu = sample.mean1[i])
+                                                    1/(5 * sample.disp1[i]),
+                                                    mu = sample.mean1[i])
       counts[i, (s + round(s/3) + 1):(2 * s)] = rnbinom((s - round(s/3)),
-                                                        1/sample.disp1[i], mu = sample.mean1[i])
+                                                        1/sample.disp1[i],
+                                                        mu = sample.mean1[i])
     }
   } else if (mode == "DL") {
     for (i in 1:n.var) {
-      counts[i, 1:s] = rnbinom(s, 22.5/sample.disp2[i],
-                               mu = sample.mean2[i])
+      counts[i, 1:s] = rnbinom(s, 22.5/sample.disp2[i], mu = sample.mean2[i])
       counts[i, (s + 1):(2 * s)] = rnbinom(s, 22.5/sample.disp1[i],
                                            mu = sample.mean1[i])
     }
   } else if (Large_sample == TRUE) {
     for (i in 1:n.var) {
       counts[i, 1:round(s/3)] = rnbinom(round(s/3),
-                                        1/(5 * sample.disp2[i]), mu = sample.mean2[i])
+                                        1/(5 * sample.disp2[i]),
+                                        mu = sample.mean2[i])
       counts[i, (round(s/3) + 1):s] = rnbinom((s - round(s/3)),
-                                              1/sample.disp2[i], mu = sample.mean2[i])
+                                              1/sample.disp2[i],
+                                              mu = sample.mean2[i])
       counts[i, (s + 1):(s + round(s/3))] = rnbinom(round(s/3),
-                                                    1/(5 * sample.disp1[i]), mu = sample.mean1[i])
+                                                    1/(5 * sample.disp1[i]),
+                                                    mu = sample.mean1[i])
       counts[i, (s + round(s/3) + 1):(2 * s)] = rnbinom((s - round(s/3)),
-                                                        1/sample.disp1[i], mu = sample.mean1[i])
+                                                        1/sample.disp1[i],
+                                                        mu = sample.mean1[i])
     }
     RO = matrix(runif(n.var * 2 * s, min = 0, max = 100),
                 nrow = n.var, ncol = 2 * s)
@@ -459,15 +489,21 @@ SyntheticDataSimulation_new = function(simul.data,
   sample.annot = data.frame(condition = c(rep(1, s), rep(2, s)))
   colnames(counts) = rownames(sample.annot)
   info.parameters = list(dataset = datasetName, uID = datasetName)
-  cpd = compData(count.matrix = counts, sample.annotations = sample.annot,
-                 info.parameters = info.parameters)
+  cpd = compcodeR::compData(count.matrix = counts,
+                            sample.annotations = sample.annot,
+                            info.parameters = info.parameters)
   saveRDS(cpd, datasetName)
 }
 
-# Modifications performance_plot():
-# - Return dataframe instead of plot (-> remove <figure.dir> and <rowType> arguments, both
-#   of which are used only for the plotting part of the function)
-# - Remove adjusted p-values with NAs and include this information in the results dataframe
+
+# FUNCTION performance_plot_new
+# = modified version of compareDEtools::performance_plot()
+# Modifications:
+# - Return dataframe instead of plot and remove <figure.dir> and <rowType> arguments, 
+#   which are used only for the plotting part of the function
+# - Only for the methods DESeq.pc and DESeq2: Exclude genes for which the adjusted 
+#   p-value is NA and include this information (i.e. the number of NAs) in the results dataframe
+# - Comment out code corresponding to the plotting part of the function
 performance_plot_new = function(working.dir,
                                 fixedfold = FALSE,
                                 simul.data,
@@ -509,7 +545,7 @@ performance_plot_new = function(working.dir,
     for (s in nsample) {
       for (prop in fraction.upregulated) {
         for (tools in AnalysisMethods) {
-          tools2 = select_tool((tools))
+          tools2 = compareDEtools::select_tool((tools))
           tpr_temp = c()
           tfdr_temp = c()
           auc_temp = c()
@@ -530,12 +566,14 @@ performance_plot_new = function(working.dir,
             }
             result = result@result.table
             
-            if ((tools %in% c("DESeq.pc", "DESeq2")) && any(is.na(result$adjpvalue))) {  # if DESeq.pc or DESeq2, exclude genes with NA adjpvalue
+            # csauer: exclude genes for which the adjusted p-value is NA (only for DESeq.pc and DESeq2)
+            if ((tools %in% c("DESeq.pc", "DESeq2")) && any(is.na(result$adjpvalue))) {
               nas_temp = append(nas_temp, sum(is.na(result$adjpvalue)))  # csauer: add info regarding NAs
-              result = result %>% filter(!is.na(adjpvalue))
+              result = result %>% dplyr::filter(!is.na(adjpvalue))
             } else {
               nas_temp = append(nas_temp, 0)  # csauer: add info regarding NAs
             }
+
             if (nrow(result) == 0) {
               next
             }
@@ -543,7 +581,7 @@ performance_plot_new = function(working.dir,
               rownames(result) = as.character(result$Genename)
             }
             ts = append(ts, setdiff(tools, ts))
-            mColor = select_color(tools)
+            mColor = compareDEtools::select_color(tools)
             tc = append(tc, setdiff(mColor, tc))
             if (!is.null(result$FDR)) {
               FDR = result$FDR
@@ -581,7 +619,7 @@ performance_plot_new = function(working.dir,
             label[indexTrue] = 1
             
            
-            pred = prediction(predictions = 1 - FDR, labels = label)
+            pred = ROCR::prediction(predictions = 1 - FDR, labels = label)
             
             auc_temp = append(auc_temp, performance(pred, "auc")@y.values[[1]][1])
         
@@ -604,7 +642,7 @@ performance_plot_new = function(working.dir,
   res = data.frame(Methods = METHOD, nSample = NSAMPLE, Repeat = REPEAT,
                    nDE = NDE, upDE = UPPROP, TPR = tpr, trueFDR = tfdr,
                    AUC = auc, Color = COLOR,
-                   # csauer:
+                   # csauer: include parameter values in results dataframe
                    simul.data = simul.data,
                    nvar = nvar,
                    fixedfold = fixedfold,

@@ -5,8 +5,11 @@
 # 
 # File name:   04_script_performdat.R
 # Author:      Christina Sauer
-# Description: Script to generate performances measures datasets 
-# Notes:     
+# Description: Script to generate performance measures dataset
+# Notes:
+#   - Requires `data/tcga_parameters.RData` and the estimates datasets saved in
+#     `results/rdata/rdata_degenes/`.
+#   - Saves `results/rdata/performdat_degenes.RData`.
 ############################################################################ ---
 
 library(dplyr)
@@ -38,9 +41,6 @@ param.fig2$disp.Types = "same"
 param.fig2$modes = c("D")  #param.fig2$modes = c('D','R','OS')
 #param.fig2$rowType = c("AUC", "TPR", "trueFDR")  # argument was removed for modified function
 #param.fig2$fixedfold = FALSE  # Default; not explicitly specified in Baik et al. code
-
-analysis.dir = "./deanalysis/results/rdata/"
-
 
 # Generate performance measures datasets -----------------------------------------------------------
 ## Figure 2 in Baik et al. (settings with > 0 DE genes) --------------------------------------------

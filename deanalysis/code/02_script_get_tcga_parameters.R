@@ -6,7 +6,9 @@
 # File name:   02_script_get_tcga_parameters.R
 # Author:      Christina Sauer
 # Description: TODO  
-# Notes:     
+# Notes:
+#   - Requires `data/tcga_datasets.RData`.
+#   - Saves `data/tcga_parameters.RData` and `data/tcga_parameters_metadata.RData`.
 ############################################################################ ---
 
 library(edgeR)
@@ -96,7 +98,7 @@ save(mean.normal_all, mean.cancer_all, mean.total_all,
 
 # Get parameters from compareDEtools (for comparison) ----------------------------------------------
 library(compareDEtools)
-param = generateDatasetParameter()
+param = compareDEtools::generateDatasetParameter()
 # Only keep KIRC parameters
 param = param[c("k_count", "disp.normal", "mean.normal", "disp.cancer", "mean.cancer",
                 "k_mean.total", "k_index.filter", "k_disp.total")]

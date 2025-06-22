@@ -5,10 +5,9 @@
 # 
 # File name:   01_script_get_tcga_datasets.R
 # Author:      Christina Sauer
-# Description: Script to download and save all TCGA datasets 
+# Description: Script to download and save all 33 TCGA datasets 
 # Notes: 
-#   - This script downloads a large amount of data and saves an .RData file that 
-#     is approx. 1.59 GB large.
+#   - Saves `data/tcga_datasets.RData` (size: approx. 1.59 GB).
 ############################################################################ ---
 
 library(curatedTCGAData)

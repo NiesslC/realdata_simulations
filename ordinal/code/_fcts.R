@@ -5,8 +5,11 @@
 # 
 # File name:   _fcts.R
 # Author:      Christina Sauer
-# Description: TODO   
-# Notes:     
+# Description: Functions for executing the simulation  
+# Notes:
+#   - Functions from the following packages are used in the functions defined
+#     here: dplyr, purrr, and rms. These packages do not have to be loaded or
+#     attached, just installed.
 ############################################################################ ---
 
 # FUNCTIONS wilcox_quiet, fisher_quiet, chisq_quiet, lrm_quiet
@@ -35,7 +38,6 @@ lrm_quiet = purrr::quietly(function(x, y) {
   p.value = rms::lrm(y ~ x)$stats[5]
   return(p.value)
   })
-
 
 
 # FUNCTION run_methods_fct
@@ -75,6 +77,7 @@ run_methods_fct = function(x, y) {
   return(estimdat)
 }
 
+
 # FUNCTION generate_simuldat_fct
 # = function that generates ordinal data
 # INPUT
@@ -95,6 +98,7 @@ generate_simuldat_fct = function(probs1, probs2, nsample, k) {
   
   return(list("x" = x, "y" = y))
 }
+
 
 # FUNCTION generate_simuldat_estimdat_statesdat_fct
 # = function that runs simulation reflecting an RCT with ordinal outcome.
@@ -169,7 +173,7 @@ generate_simuldat_estimdat_statesdat_fct = function(nrep,
   estimdat = cbind(estimdat, setting)
   #estimdat = estimdat %>% mutate(unique_categories = sapply(simuldata_list, FUN = function(i) length(unique(i$y))))
   
-  # Save states and simulated datasets and return estimated dataset
+  # Save RNG states and simulated datasets and return estimated dataset
   save(statesdat_list, simuldata_list,
        file = paste0("./ordinal/data/simulation/statesdat_simuldat_n", nsample, "_nrep",
                      format(nrep, scientific = FALSE), "_", settingname, ".RData"))

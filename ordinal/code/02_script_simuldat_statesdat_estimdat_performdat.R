@@ -5,9 +5,20 @@
 # 
 # File name:   02_script_simuldat_statesdat_estimdat_performdat.R
 # Author:      Christina Sauer
-# Description: Script for running the simulation, i.e. a) generating simulated datasets, 
-#              b) estimates datasets, c) states datasets, and d) performance measures datasets    
+# Description: Script for running the simulation, i.e. generating and saving 
+#              a) the simulated datasets, b) the RNG states datasets, c) the 
+#              estimates datasets, and d) the performance measures dataset   
 # Notes:     
+#   - Requires `data/probabilities.RData`.
+#   - Saves simulated datasets and states datasets in `data/simulation/`, 
+#     estimates data in `results/rdata/estimdat_alluser_effect.RData` and 
+#     `results/rdata/estimdat_allnejm_effect.RData`, and the performance measure
+#     dataset in `results/rdata/performdat.RData`.
+#   - The 95 `.RData` files saved in `data/simulation/` (simulated datasets and
+#     states datasets) have a total size of approx. 173 MB. The two saved 
+#     datasets with the estimates data, `estimdat_alluser_effect.RData` and 
+#     `estimdat_allnejm_effect.RData`, have a size of approx. 67 MB and approx.
+#     1.47 GB, respectively.
 ############################################################################ ---
 
 library(rms)
@@ -29,7 +40,7 @@ stopifnot(all.equal(length(unique(param_nejm$settingname)), nrow(param_nejm)))
 stopifnot(all.equal(length(unique(param_user$settingname)), nrow(param_user)))
 
 # Set parameters -----------------------------------------------------------------------------------
-nrep = 10000  # number of simulation repetitions (required to achieve a MCSE of <0.5% if worst-case SE of 50% coverage occurs, see Morris et al., 2019)
+nrep = 10000  # number of simulation repetitions (required to achieve a MCSE of < 0.5% if worst-case SE of 50% coverage occurs, see Morris et al., 2019)
 nsample = 2 * c(30, 60, 100, 150, 300)  # total number of observations
 
 # Generate simulated datasets, estimates datasets, and states datasets -----------------------------
