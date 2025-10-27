@@ -14,16 +14,16 @@ Anne-Laure Boulesteix (<https://arxiv.org/abs/2504.04864>).
 <!-- You'll still need to render `README.Rmd` regularly, to keep `README.md` up-to-date. `devtools::build_readme()` is handy for this. You could also use GitHub Actions to re-render `README.Rmd` every time you push. An example workflow can be found here: <https://github.com/r-lib/actions/tree/v1/examples>. -->
 
 The repository contains the code and results for the two example
-illustrations presented in Section 4 of the manuscript:
+illustrations presented in Section 5 of the manuscript:
 
-- [Example 1: Two-arm randomized controlled trial with an ordinal
-  outcome
-  (`ordinal/`)](#example-1-two-arm-randomized-controlled-trial-with-an-ordinal-outcome-ordinal)
-  (Section 4.1 and Supplementary Section A)
+- [Example illustration 1: Two-arm randomized controlled trial with an
+  ordinal outcome
+  (`ordinal/`)](#example-illustration-1-two-arm-randomized-controlled-trial-with-an-ordinal-outcome-ordinal)
+  (Section 5.1 and Supplementary Section A)
 
-- [Example 2: Differential gene expression analysis
-  (`deanalysis/`)](#example-2-differential-gene-expression-analysis-deanalysis)
-  (Section 4.2 and Supplementary Section B)
+- [Example illustration 2: Differential gene expression analysis
+  (`deanalysis/`)](#example-illustration-2-differential-gene-expression-analysis-deanalysis)
+  (Section 5.2 and Supplementary Section B)
 
 ## Project structure
 
@@ -55,7 +55,7 @@ realdata_simulations/
 └── realdata_simulations.Rproj
 ```
 
-## Example 1: Two-arm randomized controlled trial with an ordinal outcome (`ordinal/`)
+## Example illustration 1: Two-arm randomized controlled trial with an ordinal outcome (`ordinal/`)
 
 ### File description
 
@@ -71,7 +71,7 @@ realdata_simulations/
   along with the calculated measures as `data/probabilities.RData`.
 
 - `02_script_simuldat_statesdat_estimdat_performdat.R`:  
-  Runs the simulation described in Section 4.1 of the manuscript,
+  Runs the simulation described in Section 5.1 of the manuscript,
   generating and saving the simulated datasets (saved in
   `data/simulation/` together with the random number generator states)
   and the estimates datasets (saved in `results/rdata/`), before
@@ -264,7 +264,7 @@ sessionInfo()
 #> [65] xfun_0.37          
 ```
 
-## Example 2: Differential gene expression analysis (`deanalysis/`)
+## Example illustration 2: Differential gene expression analysis (`deanalysis/`)
 
 ### File description
 
@@ -279,7 +279,7 @@ sessionInfo()
   <!-- TODO Generates and saves a) a list containing the estimated mean and dispersion parameters and the filtered count from the original count dataset for the TCGA datasets with paired samples (saved as `data/tcga_parameters.RData`) and b) a . -->
 
 - `03_script_simuldat_estimdat.R`:  
-  Runs the simulation described in Section 4.2 of the manuscript,
+  Runs the simulation described in Section 5.2 of the manuscript,
   generating and saving first the simulated datasets (saved in
   `data/simulation_degenes/`) and then the estimates datasets (saved in
   `results/rdata/rdata_degenes/`).
