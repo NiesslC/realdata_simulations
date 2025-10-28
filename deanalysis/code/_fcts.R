@@ -1,20 +1,20 @@
-############################################################################ ---
-# Code for the manuscript "Statistical parametric simulation studies based on
-#   real data" by Christina Sauer, F. Julian D. Lange, Maria Thurow, Ina
-#   Dormuth, and Anne-Laure Boulesteix
+################################################################################################ ---
+# Code for the manuscript "Statistical parametric simulation studies based on real data" by 
+#   Christina Sauer, F. Julian D. Lange, Maria Thurow, Ina Dormuth, and Anne-Laure Boulesteix
+# 
+# Example illustration 2: Differential gene expression analysis
 # 
 # File name:   _fcts.R
-# Author:      Christina Sauer
+# Author:      Christina Sauer, F. Julian D. Lange
 # Description: Functions for executing the simulation   
 # Notes:  
-#   - Five of the functions are based on or modified versions of functions from
-#     the compareDEtools package (https://github.com/unistbig/compareDEtools).
-#     For modified functions, we added the suffix "_new" to the original name 
-#     and noted the modifications we made. 
-#   - Functions from the following packages are used in the functions defined
-#     here: compareDEtools, compcodeR, dplyr, edgeR, and ROCR. These packages do
-#     not have to be loaded or attached, just installed.
-############################################################################ ---
+#   - Five of the functions are based on or modified versions of functions from the compareDEtools
+#     package (https://github.com/unistbig/compareDEtools). For modified functions, we added the
+#     suffix "_new" to the original name and noted the modifications we made. 
+#   - Functions from the following packages are used in the functions defined here: compareDEtools,
+#     compcodeR, dplyr, edgeR, and ROCR. These packages do not have to be loaded or attached, just
+#     installed.
+################################################################################################ ---
 
 # Function to get tumor-normal paired samples
 get_paired_data_fct = function(dataset) {

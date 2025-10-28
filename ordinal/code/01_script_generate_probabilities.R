@@ -1,15 +1,19 @@
-############################################################################ ---
-# Code for the manuscript "Statistical parametric simulation studies based on
-#   real data" by Christina Sauer, F. Julian D. Lange, Maria Thurow, Ina
-#   Dormuth, and Anne-Laure Boulesteix
+################################################################################################ ---
+# Code for the manuscript "Statistical parametric simulation studies based on real data" by 
+#   Christina Sauer, F. Julian D. Lange, Maria Thurow, Ina Dormuth, and Anne-Laure Boulesteix
+# 
+# Example illustration 1: Two-arm randomized controlled trial with an ordinal outcome
 # 
 # File name:   01_script_generate_probabilities.R
-# Author:      Christina Sauer
-# Description: TODO, simulation parameters   
+# Author:      Christina Sauer, F. Julian D. Lange
+# Description: Script to generate the 4 researcher-specified and 15 real-data-based pairs of outcome
+#              probabilities (i.e. the values for the  parameter (vector_pi_1, vector_pi_2)) used in
+#              the simulation 
 # Notes:     
-#   - Requires `data/tablesample_final.xlsx`.
-#   - Saves `data/probabilities.RData`.
-############################################################################ ---
+#   - Requires `data/tablesample_final.xlsx`, containing the data extracted from articles published
+#     in the New England Journal of Medicine (NEJM).
+#   - Saves generated probabilities in `data/probabilities.RData`.
+################################################################################################ ---
 
 library(stringi)
 library(stringr)

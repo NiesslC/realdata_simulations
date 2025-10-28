@@ -1,15 +1,16 @@
-############################################################################ ---
-# Code for the manuscript "Statistical parametric simulation studies based on
-#   real data" by Christina Sauer, F. Julian D. Lange, Maria Thurow, Ina
-#   Dormuth, and Anne-Laure Boulesteix
+################################################################################################ ---
+# Code for the manuscript "Statistical parametric simulation studies based on real data" by 
+#   Christina Sauer, F. Julian D. Lange, Maria Thurow, Ina Dormuth, and Anne-Laure Boulesteix
+# 
+# Example illustration 1: Two-arm randomized controlled trial with an ordinal outcome
 # 
 # File name:   03_results_method_performance.R
-# Author:      Christina Sauer
+# Author:      Christina Sauer, F. Julian D. Lange
 # Description: Script to evaluate simulation results and generate plots and tables
 # Notes:     
 #   - Requires `data/probabilities.RData` and `results/rdata/performdat.RData`.
 #   - Saves figures in `results/plots/`.
-############################################################################ ---
+################################################################################################ ---
 
 library(ggplot2); theme_set(theme_bw())
 library(reshape2)

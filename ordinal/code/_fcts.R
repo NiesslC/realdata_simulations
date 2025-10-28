@@ -1,16 +1,16 @@
-############################################################################ ---
-# Code for the manuscript "Statistical parametric simulation studies based on
-#   real data" by Christina Sauer, F. Julian D. Lange, Maria Thurow, Ina
-#   Dormuth, and Anne-Laure Boulesteix
+################################################################################################ ---
+# Code for the manuscript "Statistical parametric simulation studies based on real data" by 
+#   Christina Sauer, F. Julian D. Lange, Maria Thurow, Ina Dormuth, and Anne-Laure Boulesteix
+# 
+# Example illustration 1: Two-arm randomized controlled trial with an ordinal outcome
 # 
 # File name:   _fcts.R
 # Author:      Christina Sauer
 # Description: Functions for executing the simulation  
 # Notes:
-#   - Functions from the following packages are used in the functions defined
-#     here: dplyr, purrr, and rms. These packages do not have to be loaded or
-#     attached, just installed.
-############################################################################ ---
+#   - Functions from the following packages are used in the functions defined here: dplyr, purrr,
+#     and rms. These packages do not have to be loaded or attached, just installed.
+################################################################################################ ---
 
 # FUNCTIONS wilcox_quiet, fisher_quiet, chisq_quiet, lrm_quiet
 # = functions that run Wilcox/Fisher/Chisq test and proportional odds ordinal logistic regression model
