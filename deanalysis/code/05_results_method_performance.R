@@ -1,15 +1,16 @@
-############################################################################ ---
-# Code for the manuscript "Statistical parametric simulation studies based on
-#   real data" by Christina Sauer, F. Julian D. Lange, Maria Thurow, Ina
-#   Dormuth, and Anne-Laure Boulesteix
+################################################################################################ ---
+# Code for the manuscript "Statistical parametric simulation studies based on real data" by 
+#   Christina Sauer, F. Julian D. Lange, Maria Thurow, Ina Dormuth, and Anne-Laure Boulesteix
+# 
+# Example illustration 2: Differential gene expression analysis
 # 
 # File name:   05_results_method_performance.R
-# Author:      Christina Sauer
+# Author:      Christina Sauer, F. Julian D. Lange
 # Description: Evaluate performance results of methods and generate plots and tables   
 # Notes:     
 #   - Requires `data/tcga_parameters_metadata.RData` and `results/rdata/performdat_degenes.RData`.
 #   - Saves figures in `results/plots/`.
-############################################################################ ---
+################################################################################################ ---
 
 library(dplyr)
 library(ggplot2); theme_set(theme_bw())

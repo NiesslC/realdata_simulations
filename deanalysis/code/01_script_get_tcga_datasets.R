@@ -1,14 +1,15 @@
-############################################################################ ---
-# Code for the manuscript "Statistical parametric simulation studies based on
-#   real data" by Christina Sauer, F. Julian D. Lange, Maria Thurow, Ina
-#   Dormuth, and Anne-Laure Boulesteix
+################################################################################################ ---
+# Code for the manuscript "Statistical parametric simulation studies based on real data" by 
+#   Christina Sauer, F. Julian D. Lange, Maria Thurow, Ina Dormuth, and Anne-Laure Boulesteix
+# 
+# Example illustration 2: Differential gene expression analysis
 # 
 # File name:   01_script_get_tcga_datasets.R
 # Author:      Christina Sauer
 # Description: Script to download and save all 33 TCGA datasets 
 # Notes: 
-#   - Saves `data/tcga_datasets.RData` (size: approx. 1.59 GB).
-############################################################################ ---
+#   - Saves TCGA datasets as `data/tcga_datasets.RData` (size: approx. 1.59 GB).
+################################################################################################ ---
 
 library(curatedTCGAData)
 

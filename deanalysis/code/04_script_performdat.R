@@ -1,16 +1,17 @@
-############################################################################ ---
-# Code for the manuscript "Statistical parametric simulation studies based on
-#   real data" by Christina Sauer, F. Julian D. Lange, Maria Thurow, Ina
-#   Dormuth, and Anne-Laure Boulesteix
+################################################################################################ ---
+# Code for the manuscript "Statistical parametric simulation studies based on real data" by 
+#   Christina Sauer, F. Julian D. Lange, Maria Thurow, Ina Dormuth, and Anne-Laure Boulesteix
+# 
+# Example illustration 2: Differential gene expression analysis
 # 
 # File name:   04_script_performdat.R
-# Author:      Christina Sauer
+# Author:      Christina Sauer, F. Julian D. Lange
 # Description: Script to generate performance measures dataset
 # Notes:
 #   - Requires `data/tcga_parameters.RData` and the estimates datasets saved in
 #     `results/rdata/rdata_degenes/`.
-#   - Saves `results/rdata/performdat_degenes.RData`.
-############################################################################ ---
+#   - Saves performance measures dataset as `results/rdata/performdat_degenes.RData`.
+################################################################################################ ---
 
 library(dplyr)
 library(ROCR)
@@ -71,5 +72,5 @@ rm(performdat_list)
 ###
 # Note:
 table(is.na(performdat_degenes$AUC))
-# - Currently no performance measures for SAMseq are calculated (also below)
+# - Currently no performance measures for SAMseq are calculated
 ###

@@ -1,15 +1,19 @@
-############################################################################ ---
-# Code for the manuscript "Statistical parametric simulation studies based on
-#   real data" by Christina Sauer, F. Julian D. Lange, Maria Thurow, Ina
-#   Dormuth, and Anne-Laure Boulesteix
+################################################################################################ ---
+# Code for the manuscript "Statistical parametric simulation studies based on real data" by 
+#   Christina Sauer, F. Julian D. Lange, Maria Thurow, Ina Dormuth, and Anne-Laure Boulesteix
+# 
+# Example illustration 1: Two-arm randomized controlled trial with an ordinal outcome
 # 
 # File name:   01_script_generate_probabilities.R
-# Author:      Christina Sauer
-# Description: TODO, simulation parameters   
+# Author:      Christina Sauer, F. Julian D. Lange
+# Description: Script to generate the 4 researcher-specified and 15 real-data-based pairs of outcome
+#              probabilities (i.e. the values for the  parameter (vector_pi_1, vector_pi_2)) used in
+#              the simulation 
 # Notes:     
-#   - Requires `data/tablesample_final.xlsx`.
-#   - Saves `data/probabilities.RData`.
-############################################################################ ---
+#   - Requires `data/tablesample_final.xlsx`, containing the data extracted from articles published
+#     in the New England Journal of Medicine (NEJM).
+#   - Saves generated probabilities in `data/probabilities.RData`.
+################################################################################################ ---
 
 library(stringi)
 library(stringr)
@@ -23,7 +27,7 @@ library(dplyr)
 
 source("./ordinal/code/_fcts.R")
 
-# Researcher-/User-defined parameters --------------------------------------------------------------
+# Researcher-defined ordinal outcome probabilities -------------------------------------------------
 # Bihl master's thesis settings (but with modification, using k=7 instead of k=8)
 
 # Group 1 = treatment group
@@ -58,7 +62,7 @@ rm(kmax)
 # Add k = number of ordinal outcomes
 param_user = param_user %>% mutate(k = (rowSums(!is.na(param_user))) / 2)
 
-# Add setting specific identifier
+# Add setting-specific identifier
 param_user = param_user %>%
   group_by(k) %>%
   mutate(id = row_number()) %>%
@@ -69,7 +73,7 @@ param_user = param_user %>%
 # Add input_mode (for researcher-defined = "probability")
 param_user = param_user %>% mutate(input_mode = "probability")
 
-# Real-data-based parameters (NEJM sample) ---------------------------------------------------------
+# Real-data-based ordinal outcome probabilities (NEJM sample) --------------------------------------
 param_nejm = read_excel("./ordinal/data/tablesample_final.xlsx", na = "NA")
 param_nejm = param_nejm %>% dplyr::filter(grepl("yes|Yes", Include))
 
@@ -89,7 +93,7 @@ param_nejm = param_nejm %>%
     ))
   )
 
-# Check that no zero probabilities
+# Check that there are no zero probabilities
 stopifnot(nrow(param_nejm %>% dplyr::filter(if_any(starts_with("group1_h"), ~ . == 0))) == 0)
 stopifnot(nrow(param_nejm %>% dplyr::filter(if_any(starts_with("group2_h"), ~ . == 0))) == 0)
 
@@ -132,7 +136,7 @@ param_user_long = melt(param_user,
   drop_na(prob)
 
 ## Odds ratios -------------------------------------------------------------------------------------
-### Researcher-/User-defined parameters ------------------------------------------------------------
+### Researcher-defined ordinal outcome probabilities -----------------------------------------------
 param_user_long_or = param_user_long %>%
   group_by(settingname, group) %>%
   arrange(h) %>%
@@ -165,7 +169,7 @@ param_user = param_user %>%
   ungroup()
 rm(param_user_long_or)
 
-### Real-data-based parameters (NEJM sample) -------------------------------------------------------
+### Real-data-based ordinal outcome probabilities (NEJM sample) ------------------------------------
 param_nejm_long_or = param_nejm_long %>%
   group_by(settingname, group) %>%
   arrange(h) %>%
@@ -201,7 +205,7 @@ rm(param_nejm_long_or)
 ## KL, relative effect, and asymptotic variance ----------------------------------------------------
 library(philentropy)  # for the function kullback_leibler_distance()
 
-### Researcher-/User-defined parameters ------------------------------------------------------------
+### Researcher-defined ordinal outcome probabilities -----------------------------------------------
 param_user_long_releff_var = param_user_long %>%
   group_by(settingname, k) %>%
   arrange(settingname, h) %>%
@@ -218,7 +222,7 @@ param_user_long_releff_var = param_user_long %>%
             asymp_var2 = asymp_var_fct(prob1 = prob[group == "group1"],
                                        prob2 = prob[group == "group2"])$sigma2)
 
-### Real-data-based parameters (NEJM sample) -------------------------------------------------------
+### Real-data-based ordinal outcome probabilities (NEJM sample) ------------------------------------
 param_nejm_long_releff_var = param_nejm_long %>%
   group_by(settingname, k) %>%
   arrange(settingname, h) %>%

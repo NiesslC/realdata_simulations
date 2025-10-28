@@ -1,15 +1,25 @@
-############################################################################ ---
-# Code for the manuscript "Statistical parametric simulation studies based on
-#   real data" by Christina Sauer, F. Julian D. Lange, Maria Thurow, Ina
-#   Dormuth, and Anne-Laure Boulesteix
+################################################################################################ ---
+# Code for the manuscript "Statistical parametric simulation studies based on real data" by 
+#   Christina Sauer, F. Julian D. Lange, Maria Thurow, Ina Dormuth, and Anne-Laure Boulesteix
+# 
+# Example illustration 2: Differential gene expression analysis
 # 
 # File name:   02_script_get_tcga_parameters.R
 # Author:      Christina Sauer
-# Description: TODO  
+# Description: Script to get estimated mean and dispersion parameters for the TCGA datasets with
+#              paired samples
 # Notes:
 #   - Requires `data/tcga_datasets.RData`.
-#   - Saves `data/tcga_parameters.RData` and `data/tcga_parameters_metadata.RData`.
-############################################################################ ---
+#   - Saves the estimated mean and dispersion parameters in two files, `data/tcga_parameters.RData`
+#     (a list used is used for running the simulation and processing the simulation results) and 
+#     `data/tcga_parameters_metadata.RData` (dataframes, which additionally contain meta data about
+#     the TCGA datasets, used for analyzing and visualizing the results).
+#   - This script generates and saves mean and dispersion parameters estimated from tumor samples
+#     and normal samples separately as well as mean and dispersion parameters estimated from all
+#     samples. However, since in all the simulation settings we adopted from Baik et al. (2020) the
+#     dispersion is assumed to be the same in both groups, only the values estimated from all
+#     samples are actually used in the subsequent scripts.
+################################################################################################ ---
 
 library(edgeR)
 library(reshape2)
