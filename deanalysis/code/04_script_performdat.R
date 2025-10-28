@@ -72,5 +72,5 @@ rm(performdat_list)
 ###
 # Note:
 table(is.na(performdat_degenes$AUC))
-# - Currently no performance measures for SAMseq are calculated (also below)
+# - Currently no performance measures for SAMseq are calculated
 ###

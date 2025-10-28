@@ -42,7 +42,7 @@ param.fig2$rep.end = 50
 param.fig2$AnalysisMethods_seed_no = c("edgeR", "DESeq.pc", "DESeq2", "voom.tmm",
                                        "voom.qn", "voom.sw")
 param.fig2$AnalysisMethods_seed_yes = c("edgeR.ql", "edgeR.rb", "ROTS", "BaySeq",
-                                        "PoissonSeq")  # SAMseq comment
+                                        "PoissonSeq")  # SAMseq was excluded due to persistent execution errors that prevented it from running
 param.fig2$nsample = c(3, 10)
 param.fig2$nDE = c(500, 1000, 3000, 6000)
 param.fig2$fraction.upregulated = 0.5

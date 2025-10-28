@@ -44,7 +44,9 @@ get_parameters_fct = function(dataset) {
   stopifnot(length(index.normal) + length(index.cancer) == ncol(dataset))
   k_count = k_count[, c(index.cancer, index.normal)]
   
-  # Normal
+  # Mean and dispersion values obtained separately from normal samples and tumor samples (for the
+  # settings where dispersion is assumed to be different between the two sample types)
+  # Normal samples
   dge.normal = edgeR::DGEList(counts = k_count[, ((nsample/2) + 1):nsample],
                               group = factor(rep(2, (nsample/2))))
   dge.normal = edgeR::calcNormFactors(dge.normal)
@@ -53,7 +55,7 @@ get_parameters_fct = function(dataset) {
   disp.normal = dge.normal$tagwise.dispersion
   mean.normal = apply(k_count[, ((nsample/2) + 1):nsample], 1, mean)
   
-  # Cancer
+  # Tumor/Cancer samples
   dge.cancer = edgeR::DGEList(counts = k_count[, 1:(nsample/2)], 
                               group = factor(rep(1, (nsample/2))))
   dge.cancer = edgeR::calcNormFactors(dge.cancer)
@@ -62,7 +64,8 @@ get_parameters_fct = function(dataset) {
   disp.cancer = dge.cancer$tagwise.dispersion
   mean.cancer = apply(k_count[, 1:(nsample/2)], 1, mean)
   
-  # Total
+  # Mean and dispersion values obtained from all samples (for the settings where dispersion is
+  # assumed to be the same for the two sample types)
   k_mean.total = apply(k_count, 1, mean)
   k_index.filter = which(k_mean.total < 10)
   k_mean.total = k_mean.total[-k_index.filter]
