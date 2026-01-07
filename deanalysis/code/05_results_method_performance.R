@@ -182,6 +182,7 @@ performdat_degenes_median %>%
   ggplot(aes(x = reorder(simul.data, simul.data_disp_median, FUN = median),
              y = simul.data_disp_median, col = simul.data != "KIRC")) +
   geom_point() +
+  ylim(0, NA) +
   scale_color_manual(values = rev(cols),
                      breaks = c(FALSE, TRUE),
                      labels = c("TCGA dataset used \nby Baik et al. (2020)",
@@ -189,7 +190,7 @@ performdat_degenes_median %>%
   labs(x = "TCGA dataset", y = "Median dispersion", col = "Dataset selection") +
   theme(legend.position = "top",
         text = element_text(size = 12),
-        axis.text.x = element_text(size = 11, angle = 90, hjust = 1))
+        axis.text.x = element_text(size = 11, angle = 90, hjust = 1, vjust = 0.5))
 ggsave(file = "./deanalysis/results/plots/deanalysis_characteristics.eps",
        height = 4, width = 6.5, device = "eps")
 
